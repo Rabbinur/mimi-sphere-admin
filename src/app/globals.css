@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* 🔵 Brand Primary (Blue from logo) */
+  --primary: 216.88 100% 21.37%;
+  --primary-foreground: 0 0% 100%;
+
+  /* 🟠 Brand Secondary (Orange from logo) */
+  --secondary: 28 100% 52%;
+  --secondary-foreground: 0 0% 100%;
+
+  /* 🌐 Background & Text */
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+
+  /* 🧱 UI Elements */
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+
+  /* 🧩 Muted / subtle areas */
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+
+  /* 🔗 Accent (lighter orange feel) */
+  --accent: 28 100% 94%;
+  --accent-foreground: 28 100% 40%;
+
+  /* 🚨 Destructive (error states) */
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* 🔲 Borders / inputs */
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 28 100% 52%;
+
+  /* 🔘 Radius */
+  --radius: 0.5rem;
+}
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply antialiased;
+  background-color: #f1f5f9;
+}
+
+.hue-slider [data-orientation="horizontal"] {
+  background: linear-gradient(
+    to right,
+    hsl(0, 100%, 50%),
+    hsl(60, 100%, 50%),
+    hsl(120, 100%, 50%),
+    hsl(180, 100%, 50%),
+    hsl(240, 100%, 50%),
+    hsl(300, 100%, 50%),
+    hsl(360, 100%, 50%)
+  );
+  border-radius: 9999px;
+}
+
+.nav-item {
+  @apply inline-flex flex-col items-center justify-center px-3 hover:bg-primary/50 focus-visible:outline-none;
+}
+
+/* globals.css */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.product-table table {
+  @apply w-full border border-gray-200 border-collapse text-sm;
+}
+
+.product-table thead {
+  @apply bg-gray-100;
+}
+
+.product-table th {
+  @apply border border-gray-200 px-3 py-2 text-left font-semibold text-gray-700;
+}
+
+.product-table td {
+  @apply border border-gray-200 px-3 py-2 text-gray-600;
+}
+
+.product-table tr:nth-child(even) {
+  @apply bg-gray-50;
+}
+.product-table {
+  @apply overflow-x-auto;
+}

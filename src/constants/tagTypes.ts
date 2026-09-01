@@ -1,0 +1,22 @@
+export const tagTypes = [
+  "auth",
+  "products",
+  "order",
+  "File",
+  "Invoice",
+  "CMS",
+  "CustomOrder",
+  "billing-invoice",
+  "blogs",
+  "coupons",
+  "MetaEvents",
+  "GoogleAnalytics",
+  "address",
+  "brands",
+  "Campaign",
+  "CampaignTemplate",
+  "ServerLogs",
+  "Review",
+  "collections",
+] as const;
+
