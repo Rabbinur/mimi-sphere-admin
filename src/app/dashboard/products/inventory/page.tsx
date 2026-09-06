@@ -508,7 +508,7 @@ export default function InventoryPage() {
                 <Pagination
                     currentPage={currentPage}
                     lastPage={lastPage}
-                    onPageChange={(p) => setCurrentPage(p)}
+                    onPageChange={(p: number) => setCurrentPage(p)}
                     from={from}
                     to={to}
                     totalItems={totalItems}

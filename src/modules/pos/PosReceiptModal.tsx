@@ -28,9 +28,9 @@ export function PosReceiptModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 overflow-hidden flex flex-col my-auto animate-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 overflow-hidden flex flex-col my-auto max-h-[92dvh] animate-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="p-4 bg-emerald-600 text-white flex items-center justify-between">
+        <div className="p-3.5 sm:p-4 bg-emerald-600 text-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <CheckCircle className="w-5 h-5 text-white" />
             <div>

@@ -77,9 +77,9 @@ export function PosCameraScannerModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
-      <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 overflow-hidden flex flex-col my-auto animate-in zoom-in-95 duration-150">
+      <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 overflow-hidden flex flex-col my-auto max-h-[92dvh] animate-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="p-4 bg-slate-900 text-white flex items-center justify-between">
+        <div className="p-3.5 sm:p-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <Camera className="w-5 h-5 text-amber-400" />
             <div>
@@ -98,7 +98,7 @@ export function PosCameraScannerModal({
         </div>
 
         {/* Video Viewfinder */}
-        <div className="relative bg-black w-full h-64 flex items-center justify-center overflow-hidden">
+        <div className="relative bg-black w-full h-52 sm:h-64 flex items-center justify-center overflow-hidden">
           {!hasCameraError ? (
             <>
               <video

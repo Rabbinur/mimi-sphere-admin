@@ -136,26 +136,26 @@ export function PosProductGrid({
       </div>
 
       {/* Main Touch Grid Container */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-2.5 sm:p-4 pb-28 lg:pb-6 custom-scrollbar">
         {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3">
             {Array.from({ length: 12 }).map((_, i) => (
               <div key={i} className="bg-white rounded-2xl p-3 border border-slate-200 animate-pulse space-y-2">
-                <div className="w-full h-28 bg-slate-100 rounded-xl" />
+                <div className="w-full h-24 sm:h-28 bg-slate-100 rounded-xl" />
                 <div className="h-3 bg-slate-100 rounded w-3/4" />
                 <div className="h-4 bg-slate-100 rounded w-1/2" />
               </div>
             ))}
           </div>
         ) : products.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center p-8 text-slate-400">
+          <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-center p-8 text-slate-400">
             <Package className="w-12 h-12 mb-3 stroke-1 text-slate-300" />
             <h3 className="text-sm font-bold text-slate-700">No products found</h3>
             <p className="text-xs text-slate-400 mt-1">Try another search keyword or category filter</p>
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2.5 sm:gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3">
               {products.map((prod) => {
                 const img = getImageUrl(prod.image);
                 const isOutOfStock = prod.stock_quantity <= 0 && !prod.has_variants;
@@ -164,14 +164,14 @@ export function PosProductGrid({
                   <div
                     key={prod.product_id}
                     onClick={() => !isOutOfStock && handleProductCardClick(prod)}
-                    className={`group bg-white rounded-2xl border border-slate-200/80 p-2.5 flex flex-col justify-between transition-all duration-150 relative select-none ${
+                    className={`group bg-white rounded-2xl border border-slate-200/80 p-2 sm:p-2.5 flex flex-col justify-between transition-all duration-150 relative select-none ${
                       isOutOfStock
                         ? "opacity-50 cursor-not-allowed bg-slate-50"
                         : "hover:border-primary hover:shadow-md active:scale-98 cursor-pointer"
                     }`}
                   >
                     {/* Top Image & Badges */}
-                    <div className="relative w-full h-28 sm:h-32 rounded-xl bg-slate-50 overflow-hidden mb-2 shrink-0 border border-slate-100">
+                    <div className="relative w-full h-24 sm:h-32 rounded-xl bg-slate-50 overflow-hidden mb-1.5 sm:mb-2 shrink-0 border border-slate-100">
                       {img ? (
                         <img
                           src={img}
@@ -187,7 +187,7 @@ export function PosProductGrid({
 
                       {/* Variant Badge */}
                       {prod.has_variants && (
-                        <span className="absolute top-1.5 left-1.5 px-2 py-0.5 bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-bold rounded-md flex items-center gap-1 shadow-xs">
+                        <span className="absolute top-1 left-1 sm:top-1.5 sm:left-1.5 px-1.5 sm:px-2 py-0.5 bg-slate-900/80 backdrop-blur-xs text-white text-[9px] sm:text-[10px] font-bold rounded-md flex items-center gap-1 shadow-xs">
                           <Layers className="w-2.5 h-2.5 text-blue-400" />
                           <span>{prod.variants_count || "Variants"}</span>
                         </span>
@@ -195,7 +195,7 @@ export function PosProductGrid({
 
                       {/* Stock Badge */}
                       <span
-                        className={`absolute bottom-1.5 right-1.5 px-2 py-0.5 text-[10px] font-black rounded-md shadow-xs ${
+                        className={`absolute bottom-1 right-1 sm:bottom-1.5 sm:right-1.5 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-black rounded-md shadow-xs ${
                           prod.stock_quantity > 5
                             ? "bg-emerald-600/90 text-white"
                             : prod.stock_quantity > 0
@@ -213,21 +213,21 @@ export function PosProductGrid({
                         {prod.product_name}
                       </h4>
                       {prod.sku && (
-                        <p className="text-[10px] font-mono font-semibold text-slate-400 truncate">
+                        <p className="text-[9px] sm:text-[10px] font-mono font-semibold text-slate-400 truncate">
                           {prod.sku}
                         </p>
                       )}
                     </div>
 
                     {/* Price & Action Button */}
-                    <div className="pt-2 mt-1 border-t border-slate-100 flex items-center justify-between">
-                      <span className="text-xs sm:text-sm font-black font-mono text-slate-900">
+                    <div className="pt-1.5 sm:pt-2 mt-1 border-t border-slate-100 flex items-center justify-between gap-1">
+                      <span className="text-xs sm:text-sm font-black font-mono text-slate-900 truncate">
                         ৳{prod.price.toLocaleString("en-US", { minimumFractionDigits: 0 })}
                       </span>
 
                       <button
                         type="button"
-                        className="px-2 py-1 bg-slate-100 group-hover:bg-primary group-hover:text-white text-slate-600 rounded-lg text-[11px] font-bold transition-all"
+                        className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-slate-100 group-hover:bg-primary group-hover:text-white text-slate-600 rounded-lg text-[10px] sm:text-[11px] font-bold transition-all shrink-0"
                       >
                         {prod.has_variants ? "Options" : "+ Add"}
                       </button>
@@ -244,7 +244,7 @@ export function PosProductGrid({
                   type="button"
                   onClick={onLoadMore}
                   disabled={isFetchingMore}
-                  className="px-6 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                  className="px-6 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
                 >
                   {isFetchingMore ? "Loading more products..." : "Load More Products ↓"}
                 </button>

@@ -40,16 +40,16 @@ export function PosShiftModal({ isOpen, onClose }: PosShiftModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
-      <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl border border-slate-100 overflow-hidden flex flex-col my-auto animate-in zoom-in-95 duration-150">
+      <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-lg shadow-2xl border border-slate-100 overflow-hidden flex flex-col my-auto max-h-[92dvh] animate-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between">
+        <div className="p-3.5 sm:p-5 bg-slate-900 text-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500 flex items-center justify-center text-white">
-              <DollarSign className="w-5 h-5" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500 flex items-center justify-center text-white shrink-0">
+              <DollarSign className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div>
-              <h3 className="text-base font-black">Daily POS Shift Summary</h3>
-              <p className="text-xs text-slate-400">Date: {data.date}</p>
+              <h3 className="text-sm sm:text-base font-black">Daily POS Shift Summary</h3>
+              <p className="text-[11px] sm:text-xs text-slate-400">Date: {data.date}</p>
             </div>
           </div>
 
@@ -63,7 +63,7 @@ export function PosShiftModal({ isOpen, onClose }: PosShiftModalProps) {
         </div>
 
         {/* Content */}
-        <div className="p-4 sm:p-6 space-y-4">
+        <div className="p-3.5 sm:p-6 space-y-3.5 sm:space-y-4 overflow-y-auto custom-scrollbar flex-1">
           {isLoading ? (
             <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
               <Loader2 className="w-6 h-6 animate-spin text-primary" />

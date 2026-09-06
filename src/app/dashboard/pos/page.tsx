@@ -693,7 +693,7 @@ export default function PosTerminalPage() {
     };
 
     return (
-        <div className="h-screen w-screen flex flex-col bg-slate-100 overflow-hidden font-sans select-none relative">
+        <div className="fixed inset-0 z-40 flex flex-col bg-slate-100 overflow-hidden font-sans select-none">
             {/* Top Bar */}
             <PosHeader
                 onOpenShiftModal={() => setIsShiftModalOpen(true)}
@@ -701,6 +701,8 @@ export default function PosTerminalPage() {
                 onRefresh={refetchProducts}
                 barcodeStatusMessage={barcodeStatusMessage}
                 isScanning={isScanning}
+                cartItemCount={totalItemCount}
+                onOpenMobileCart={() => setIsMobileCartOpen(true)}
             />
 
             {/* Main Terminal Grid: Products Grid (Left) + Order Cart Panel (Right Desktop / Drawer Mobile) */}
@@ -723,7 +725,7 @@ export default function PosTerminalPage() {
                 />
 
                 {/* Desktop Cart Sidebar (hidden on mobile/tablet) */}
-                <div className="hidden lg:block h-full">
+                <div className="hidden lg:block h-full shrink-0">
                     <PosCartPanel
                         cartItems={cartItems}
                         onUpdateQuantity={updateQuantity}
@@ -741,32 +743,44 @@ export default function PosTerminalPage() {
 
             {/* Mobile/Tablet Floating Bottom Cart Bar (< lg) */}
             {cartItems.length > 0 && (
-                <div className="lg:hidden fixed bottom-0 left-0 right-0 p-3 bg-slate-900/95 backdrop-blur-md text-white flex items-center justify-between shadow-2xl z-30 border-t border-slate-800 animate-in slide-in-from-bottom duration-200">
-                    <div>
-                        <span className="text-xs font-bold text-slate-400 block">{totalItemCount} Items Selected</span>
-                        <span className="text-base font-black text-blue-400 font-mono">
-                            ${grandTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                        </span>
+                <div className="lg:hidden fixed bottom-0 left-0 right-0 p-3 pb-safe bg-slate-900/95 backdrop-blur-md text-white flex items-center justify-between shadow-2xl z-30 border-t border-slate-800 animate-in slide-in-from-bottom duration-200">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">
+                            {totalItemCount}
+                        </div>
+                        <div>
+                            <span className="text-[11px] font-bold text-slate-400 block leading-tight">
+                                {totalItemCount} {totalItemCount === 1 ? "Item" : "Items"} in Cart
+                            </span>
+                            <span className="text-sm sm:text-base font-black text-emerald-400 font-mono leading-tight">
+                                ৳{grandTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                            </span>
+                        </div>
                     </div>
 
                     <button
                         onClick={() => setIsMobileCartOpen(true)}
-                        className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition-all shadow-md cursor-pointer flex items-center gap-1.5"
+                        className="px-4 sm:px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white rounded-xl text-xs font-black transition-all shadow-md cursor-pointer flex items-center gap-1.5"
                     >
                         View Cart & Pay →
                     </button>
                 </div>
             )}
 
-            {/* Mobile/Tablet Cart Slide-Up Drawer Overlay (< lg) */}
+            {/* Mobile/Tablet Cart Slide-Up / Slide-Over Drawer Overlay (< lg) */}
             {isMobileCartOpen && (
-                <div className="lg:hidden fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-50 flex justify-end animate-in fade-in duration-200">
+                <div
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) setIsMobileCartOpen(false);
+                    }}
+                    className="lg:hidden fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-50 flex justify-end animate-in fade-in duration-200"
+                >
                     <div className="w-full max-w-md h-full bg-white flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
-                        <div className="p-3 bg-slate-950 text-white flex items-center justify-between">
-                            <span className="text-xs font-black">POS Order Cart</span>
+                        <div className="p-3 bg-slate-950 text-white flex items-center justify-between shrink-0">
+                            <span className="text-xs font-black">POS Order Cart ({totalItemCount})</span>
                             <button
                                 onClick={() => setIsMobileCartOpen(false)}
-                                className="px-3 py-1 bg-slate-800 text-slate-300 rounded-lg text-xs font-bold"
+                                className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold cursor-pointer transition-colors"
                             >
                                 ✕ Close
                             </button>

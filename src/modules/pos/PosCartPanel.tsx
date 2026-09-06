@@ -62,16 +62,16 @@ export function PosCartPanel({
       : Math.min(globalDiscount.value || 0, subtotal);
 
   return (
-    <div className="w-full lg:w-96 xl:w-104 bg-white h-full flex flex-col justify-between border-l border-slate-200 select-none shadow-xs">
+    <div className="w-full lg:w-80 xl:w-96 2xl:w-[400px] bg-white h-full flex flex-col justify-between border-l border-slate-200 select-none shadow-xs">
       {/* Panel Header */}
-      <div className="p-3.5 border-b border-slate-200 flex items-center justify-between shrink-0 bg-slate-50/70">
+      <div className="p-3 sm:p-3.5 border-b border-slate-200 flex items-center justify-between shrink-0 bg-slate-50/70">
         <div className="flex items-center gap-2">
           <div className="p-2 bg-primary/10 text-primary rounded-xl">
             <ShoppingCart className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-black text-slate-900">Current Order</h3>
-            <span className="text-[11px] font-bold text-slate-500">
+            <h3 className="text-xs sm:text-sm font-black text-slate-900">Current Order</h3>
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-500">
               {totalItemCount} {totalItemCount === 1 ? "item" : "items"}
             </span>
           </div>
@@ -90,9 +90,9 @@ export function PosCartPanel({
       </div>
 
       {/* Cart Items List */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2.5 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-2.5 sm:p-3 space-y-2 custom-scrollbar">
         {cartItems.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-400">
+          <div className="h-full min-h-[220px] flex flex-col items-center justify-center text-center p-6 text-slate-400">
             <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-3">
               <ShoppingCart className="w-6 h-6 text-slate-300 stroke-1" />
             </div>
@@ -109,10 +109,10 @@ export function PosCartPanel({
             return (
               <div
                 key={itemKey}
-                className="p-2.5 bg-slate-50 hover:bg-slate-100/80 rounded-xl border border-slate-200/70 flex items-center gap-2.5 transition-all group"
+                className="p-2 sm:p-2.5 bg-slate-50 hover:bg-slate-100/80 rounded-xl border border-slate-200/70 flex items-center gap-2 sm:gap-2.5 transition-all group"
               >
                 {/* Thumbnail */}
-                <div className="w-11 h-11 rounded-lg bg-white border border-slate-200 overflow-hidden shrink-0">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-white border border-slate-200 overflow-hidden shrink-0">
                   {img ? (
                     <img src={img} alt={item.product_name} className="w-full h-full object-cover" />
                   ) : (
@@ -126,31 +126,31 @@ export function PosCartPanel({
                 <div className="flex-1 min-w-0 space-y-0.5">
                   <h4 className="text-xs font-bold text-slate-800 truncate">{item.product_name}</h4>
                   {item.combination_label && (
-                    <span className="inline-block text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.2 rounded">
+                    <span className="inline-block text-[9px] sm:text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.2 rounded truncate max-w-full">
                       {item.combination_label}
                     </span>
                   )}
-                  <p className="text-[11px] font-mono font-bold text-slate-500">
+                  <p className="text-[10px] sm:text-[11px] font-mono font-bold text-slate-500">
                     ৳{item.price} × {item.quantity} = <span className="text-slate-900 font-extrabold">৳{item.total}</span>
                   </p>
                 </div>
 
                 {/* Stepper (+ / -) */}
-                <div className="flex items-center gap-1 shrink-0 bg-white border border-slate-200 rounded-lg p-0.5">
+                <div className="flex items-center gap-0.5 sm:gap-1 shrink-0 bg-white border border-slate-200 rounded-lg p-0.5">
                   <button
                     type="button"
                     onClick={() => onUpdateQuantity(itemKey, item.quantity - 1)}
-                    className="w-6 h-6 rounded flex items-center justify-center hover:bg-slate-100 text-slate-600 transition-colors"
+                    className="w-6 h-6 sm:w-7 sm:h-7 rounded flex items-center justify-center hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer"
                   >
                     <Minus className="w-3 h-3" />
                   </button>
-                  <span className="w-6 text-center text-xs font-bold font-mono text-slate-800">
+                  <span className="w-5 sm:w-6 text-center text-xs font-bold font-mono text-slate-800">
                     {item.quantity}
                   </span>
                   <button
                     type="button"
                     onClick={() => onUpdateQuantity(itemKey, item.quantity + 1)}
-                    className="w-6 h-6 rounded flex items-center justify-center hover:bg-slate-100 text-slate-600 transition-colors"
+                    className="w-6 h-6 sm:w-7 sm:h-7 rounded flex items-center justify-center hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer"
                   >
                     <Plus className="w-3 h-3" />
                   </button>
@@ -160,7 +160,7 @@ export function PosCartPanel({
                 <button
                   type="button"
                   onClick={() => onRemoveItem(itemKey)}
-                  className="text-slate-300 hover:text-rose-600 p-1 transition-colors"
+                  className="text-slate-300 hover:text-rose-600 p-1 transition-colors cursor-pointer"
                   title="Remove from cart"
                 >
                   <X className="w-3.5 h-3.5" />

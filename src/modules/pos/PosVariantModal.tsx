@@ -24,15 +24,15 @@ export function PosVariantModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
-      <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl border border-slate-100 overflow-hidden flex flex-col my-auto animate-in zoom-in-95 duration-150">
+      <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-lg shadow-2xl border border-slate-100 overflow-hidden flex flex-col my-auto max-h-[92dvh] animate-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between">
+        <div className="p-3.5 sm:p-5 bg-slate-900 text-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-blue-500 flex items-center justify-center text-white">
+            <div className="w-8 h-8 rounded-xl bg-blue-500 flex items-center justify-center text-white shrink-0">
               <Layers className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm sm:text-base font-black truncate max-w-[280px]">
+              <h3 className="text-sm sm:text-base font-black truncate max-w-[200px] sm:max-w-[320px]">
                 {product.product_name}
               </h3>
               <p className="text-[11px] text-slate-400">Select option to add to cart</p>
