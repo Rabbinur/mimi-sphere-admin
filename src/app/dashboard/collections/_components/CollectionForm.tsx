@@ -392,7 +392,7 @@ export default function CollectionForm({ mode, collectionId }: CollectionFormPro
   "heroDescription": "Discover our curated list of lightweight, hydrating skincare solutions perfect for hot summer days.",
   "bannerImage": "https://example.com/banner.jpg",
   "content": "<p>Introduce your summer skincare routine with our selection of sun protection, toners, and moisturizers...</p>",
-  "metaTitle": "Summer Skincare Collection | Shopping Cart BD",
+  "metaTitle": "Summer Skincare Collection | Mimi Sphere",
   "metaDescription": "Shop top summer skincare essentials. Find lightweight moisturizers, hydrating sheet masks, and broad spectrum sunscreens.",
   "metaKeywords": "summer skincare, hydrating skincare, sun gel, soothing mist, k-beauty",
   "ogImage": "https://example.com/og.jpg",
@@ -703,8 +703,8 @@ export default function CollectionForm({ mode, collectionId }: CollectionFormPro
                                                     key={brand._id}
                                                     onClick={() => toggleBrandFilter(brand.name)}
                                                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border font-medium transition ${isChecked
-                                                            ? "bg-primary text-white border-primary"
-                                                            : "bg-white text-gray-600 border-slate-200 hover:bg-slate-50"
+                                                        ? "bg-primary text-white border-primary"
+                                                        : "bg-white text-gray-600 border-slate-200 hover:bg-slate-50"
                                                         }`}
                                                 >
                                                     {isChecked && <Check className="h-3.5 w-3.5" />}
@@ -727,8 +727,8 @@ export default function CollectionForm({ mode, collectionId }: CollectionFormPro
                                                     key={cat._id}
                                                     onClick={() => toggleCategoryFilter(cat._id)}
                                                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border font-medium transition ${isChecked
-                                                            ? "bg-primary text-white border-primary"
-                                                            : "bg-white text-gray-600 border-slate-200 hover:bg-slate-50"
+                                                        ? "bg-primary text-white border-primary"
+                                                        : "bg-white text-gray-600 border-slate-200 hover:bg-slate-50"
                                                         }`}
                                                 >
                                                     {isChecked && <Check className="h-3.5 w-3.5" />}

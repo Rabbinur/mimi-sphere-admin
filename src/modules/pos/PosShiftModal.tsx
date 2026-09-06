@@ -3,14 +3,10 @@
 import React from "react";
 import {
   Banknote,
-  Calendar,
   CreditCard,
-  DollarSign,
+  FileSpreadsheet,
   Loader2,
-  Package,
-  Receipt,
   Smartphone,
-  TrendingUp,
   X,
 } from "lucide-react";
 import { useGetPosShiftSummaryQuery } from "@/components/Redux/RTK/posApi";
@@ -38,117 +34,124 @@ export function PosShiftModal({ isOpen, onClose }: PosShiftModalProps) {
     total_items_sold: 0,
   };
 
+  const totalSales = Number(data.total_sales || 0);
+  const totalOrders = Number(data.total_orders || 0);
+  const cashSales = Number(data.cash_sales || 0);
+  const cardSales = Number(data.card_sales || 0);
+  const digitalSales = Number(data.digital_sales || 0);
+
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
-      <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-lg shadow-2xl border border-slate-100 overflow-hidden flex flex-col my-auto max-h-[92dvh] animate-in zoom-in-95 duration-150">
+      <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 overflow-hidden flex flex-col my-auto max-h-[92dvh] animate-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="p-3.5 sm:p-5 bg-slate-900 text-white flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500 flex items-center justify-center text-white shrink-0">
-              <DollarSign className="w-4 h-4 sm:w-5 sm:h-5" />
+        <div className="p-5 pb-4 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100">
+              <FileSpreadsheet className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm sm:text-base font-black">Daily POS Shift Summary</h3>
-              <p className="text-[11px] sm:text-xs text-slate-400">Date: {data.date}</p>
+              <h3 className="text-base font-black text-slate-900 leading-tight">
+                Cashier Shift & Sales Report
+              </h3>
+              <p className="text-xs font-medium text-slate-500 mt-0.5">
+                Daily POS counter sales summary
+              </p>
             </div>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-3.5 sm:p-6 space-y-3.5 sm:space-y-4 overflow-y-auto custom-scrollbar flex-1">
+        <div className="p-5 pt-2 space-y-4 overflow-y-auto custom-scrollbar flex-1">
           {isLoading ? (
             <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
-              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              <Loader2 className="w-7 h-7 animate-spin text-indigo-600" />
               <span className="text-xs font-bold">Calculating shift statistics...</span>
             </div>
           ) : (
             <>
-              {/* Grand Total Highlight */}
-              <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 flex items-center justify-between">
+              {/* Dark Hero Card */}
+              <div className="bg-[#181938] rounded-2xl p-5 text-white shadow-md flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">
-                    Total In-Store Sales (Today)
+                  <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">
+                    Today's POS Sales
                   </span>
-                  <p className="text-2xl sm:text-3xl font-black font-mono text-emerald-700 mt-0.5">
-                    ৳{data.total_sales.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                  </p>
-                </div>
-                <div className="p-3 bg-emerald-100 rounded-2xl text-emerald-700">
-                  <TrendingUp className="w-6 h-6" />
-                </div>
-              </div>
-
-              {/* Breakdown Grid */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
-                  <div className="flex items-center gap-2 text-slate-500 mb-1">
-                    <Banknote className="w-4 h-4 text-emerald-600" />
-                    <span className="text-xs font-bold">Cash in Drawer</span>
-                  </div>
-                  <p className="text-lg font-black font-mono text-slate-900">
-                    ৳{data.cash_sales.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                  <p className="text-3xl font-black font-mono text-emerald-400 tracking-tight">
+                    ৳{totalSales.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                   </p>
                 </div>
 
-                <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
-                  <div className="flex items-center gap-2 text-slate-500 mb-1">
-                    <CreditCard className="w-4 h-4 text-blue-600" />
-                    <span className="text-xs font-bold">Card Collections</span>
-                  </div>
-                  <p className="text-lg font-black font-mono text-slate-900">
-                    ৳{data.card_sales.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                  </p>
-                </div>
-
-                <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
-                  <div className="flex items-center gap-2 text-slate-500 mb-1">
-                    <Smartphone className="w-4 h-4 text-pink-600" />
-                    <span className="text-xs font-bold">bKash / Nagad</span>
-                  </div>
-                  <p className="text-lg font-black font-mono text-slate-900">
-                    ৳{data.digital_sales.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                  </p>
-                </div>
-
-                <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
-                  <div className="flex items-center gap-2 text-slate-500 mb-1">
-                    <Receipt className="w-4 h-4 text-amber-600" />
-                    <span className="text-xs font-bold">Completed Orders</span>
-                  </div>
-                  <p className="text-lg font-black font-mono text-slate-900">
-                    {data.total_orders} orders
+                <div className="text-right">
+                  <span className="text-[11px] font-bold text-slate-400 block mb-0.5">
+                    Total Orders
+                  </span>
+                  <p className="text-lg font-black text-white">
+                    {totalOrders} {totalOrders === 1 ? "Completed" : "Completed"}
                   </p>
                 </div>
               </div>
 
-              {/* Quick stats footer */}
-              <div className="p-3 bg-slate-100 rounded-xl text-xs font-medium text-slate-600 flex justify-between">
-                <span>Items Sold: <strong>{data.total_items_sold} pcs</strong></span>
-                <span>Discounts Given: <strong>৳{data.total_discount}</strong></span>
+              {/* Payment Method Breakdown */}
+              <div className="space-y-2.5 pt-1">
+                <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider block px-1">
+                  Payment Method Breakdown
+                </span>
+
+                {/* Cash Row */}
+                <div className="p-3.5 bg-slate-50/80 hover:bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-100/70 text-emerald-600 flex items-center justify-center">
+                      <Banknote className="w-5 h-5" />
+                    </div>
+                    <span className="text-xs sm:text-sm font-bold text-slate-800">Cash Payments</span>
+                  </div>
+                  <span className="text-xs sm:text-sm font-mono font-bold text-slate-900">
+                    ৳{cashSales.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+
+                {/* Card Row */}
+                <div className="p-3.5 bg-slate-50/80 hover:bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-blue-100/70 text-blue-600 flex items-center justify-center">
+                      <CreditCard className="w-5 h-5" />
+                    </div>
+                    <span className="text-xs sm:text-sm font-bold text-slate-800">Card Payments</span>
+                  </div>
+                  <span className="text-xs sm:text-sm font-mono font-bold text-slate-900">
+                    ৳{cardSales.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+
+                {/* bKash / MFS Row */}
+                <div className="p-3.5 bg-slate-50/80 hover:bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-pink-100/70 text-pink-600 flex items-center justify-center">
+                      <Smartphone className="w-5 h-5" />
+                    </div>
+                    <span className="text-xs sm:text-sm font-bold text-slate-800">bKash / MFS</span>
+                  </div>
+                  <span className="text-xs sm:text-sm font-mono font-bold text-slate-900">
+                    ৳{digitalSales.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
               </div>
             </>
           )}
 
-          <div className="pt-2 flex gap-2">
-            <button
-              type="button"
-              onClick={() => refetch()}
-              className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer"
-            >
-              Refresh Stats
-            </button>
+          {/* Footer Action */}
+          <div className="pt-2 flex justify-end">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+              className="px-6 py-2.5 bg-[#181938] hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
             >
               Close
             </button>

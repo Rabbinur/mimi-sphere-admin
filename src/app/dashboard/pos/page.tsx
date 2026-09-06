@@ -693,7 +693,7 @@ export default function PosTerminalPage() {
     };
 
     return (
-        <div className="fixed inset-0 z-40 flex flex-col bg-slate-100 overflow-hidden font-sans select-none">
+        <div className="fixed inset-0 z-[60] flex flex-col bg-slate-100 overflow-hidden font-sans select-none">
             {/* Top Bar */}
             <PosHeader
                 onOpenShiftModal={() => setIsShiftModalOpen(true)}

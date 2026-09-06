@@ -32,7 +32,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
               {isSidebarOpen && (
                 <div className="ml-3 overflow-hidden">
                   <h2 className="font-bold text-slate-900 text-base leading-tight truncate">
-                    Shopping Cart BD
+                    Mimi Sphere
                   </h2>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                     Admin Panel
