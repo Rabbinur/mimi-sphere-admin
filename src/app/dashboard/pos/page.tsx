@@ -227,7 +227,7 @@ export default function PosTerminalPage() {
                     ${it.combination_label ? `<div style="font-size: 10px; color: #64748b; margin-top: 2px;">${it.combination_label}</div>` : ''}
                 </td>
                 <td style="padding: 6px 0; text-align: center; font-weight: 800; color: #334155;">${it.quantity}</td>
-                <td style="padding: 6px 0; text-align: right; font-weight: 800; font-family: monospace; color: #0f172a;">$${it.total.toLocaleString("en-US", { minimumFractionDigits: 2 })}</td>
+                <td style="padding: 6px 0; text-align: right; font-weight: 800; font-family: monospace; color: #0f172a;">৳${it.total.toLocaleString("en-US", { minimumFractionDigits: 2 })}</td>
             </tr>
         `).join("");
 
@@ -259,7 +259,7 @@ export default function PosTerminalPage() {
                             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
                         }
                         .header { text-align: center; margin-bottom: 10px; }
-                        .store-name { font-size: 15px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.5px; }
+                        .store-name { font-size: 16px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.5px; color: #0f172a; }
                         .sub-header { font-size: 10.5px; font-weight: 700; color: #64748b; }
                         .dashed { border-top: 1px dashed #94a3b8; margin: 10px 0; }
                         .meta-row { display: flex; justify-content: space-between; font-size: 10.5px; margin-bottom: 3px; }
@@ -283,7 +283,7 @@ export default function PosTerminalPage() {
                 <body>
                     <div class="invoice-card">
                         <div class="header">
-                            <div class="store-name">GOLDENMARK STORE</div>
+                            <div class="store-name">MIMI SPHERE</div>
                             <div class="sub-header">POS Thermal Sales Receipt</div>
                             <div style="font-size: 9.5px; color: #94a3b8;">Dhaka, Bangladesh</div>
                         </div>
@@ -312,12 +312,12 @@ export default function PosTerminalPage() {
 
                         <div class="dashed"></div>
 
-                        <div class="totals-row"><span>Subtotal:</span><span>$${receiptData.subtotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span></div>
-                        ${receiptData.discount > 0 ? `<div class="totals-row" style="color: #047857; font-weight: bold;"><span>Discount:</span><span>-$${receiptData.discount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span></div>` : ''}
+                        <div class="totals-row"><span>Subtotal:</span><span>৳${receiptData.subtotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span></div>
+                        ${receiptData.discount > 0 ? `<div class="totals-row" style="color: #047857; font-weight: bold;"><span>Discount:</span><span>-৳${receiptData.discount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span></div>` : ''}
                         
                         <div class="grand-total">
                             <span>TOTAL PAID:</span>
-                            <span>$${receiptData.total.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
+                            <span>৳${receiptData.total.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
                         </div>
 
                         <div class="totals-row" style="font-size: 10px; color: #64748b; margin-top: 6px;">
@@ -325,8 +325,8 @@ export default function PosTerminalPage() {
                             <span style="font-weight: 800; text-transform: uppercase;">${receiptData.payment_method}</span>
                         </div>
                         ${receiptData.payment_method === 'cash' ? `
-                            <div class="totals-row" style="font-size: 10px; color: #64748b;"><span>Tendered:</span><span>$${receiptData.tendered_amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span></div>
-                            <div class="totals-row" style="font-size: 10px; font-weight: 800; color: #047857;"><span>Change Due:</span><span>$${receiptData.change_amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span></div>
+                            <div class="totals-row" style="font-size: 10px; color: #64748b;"><span>Tendered:</span><span>৳${receiptData.tendered_amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span></div>
+                            <div class="totals-row" style="font-size: 10px; font-weight: 800; color: #047857;"><span>Change Due:</span><span>৳${receiptData.change_amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span></div>
                         ` : ''}
 
                         <div class="dashed"></div>
@@ -368,8 +368,8 @@ export default function PosTerminalPage() {
                     ${it.sku ? `<div style="font-size: 9.5px; color: #94a3b8; font-family: monospace;">SKU: ${it.sku}</div>` : ''}
                 </td>
                 <td style="padding: 8px 6px; text-align: center; font-weight: 800; color: #1e293b; font-size: 12px;">${it.quantity}</td>
-                <td style="padding: 8px 6px; text-align: right; font-weight: 700; font-family: monospace; color: #475569; font-size: 12px;">$${(it.price || 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}</td>
-                <td style="padding: 8px 6px; text-align: right; font-weight: 900; font-family: monospace; color: #0f172a; font-size: 12.5px;">$${it.total.toLocaleString("en-US", { minimumFractionDigits: 2 })}</td>
+                <td style="padding: 8px 6px; text-align: right; font-weight: 700; font-family: monospace; color: #475569; font-size: 12px;">৳${(it.price || 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}</td>
+                <td style="padding: 8px 6px; text-align: right; font-weight: 900; font-family: monospace; color: #0f172a; font-size: 12.5px;">৳${it.total.toLocaleString("en-US", { minimumFractionDigits: 2 })}</td>
             </tr>
         `).join("");
 
@@ -377,7 +377,7 @@ export default function PosTerminalPage() {
             <!DOCTYPE html>
             <html>
                 <head>
-                    <title>Invoice #${receiptData.receipt_number} - GOLDENMARK POS</title>
+                    <title>Invoice #${receiptData.receipt_number} - MIMI SPHERE POS</title>
                     <meta charset="utf-8" />
                     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
                     <style>
@@ -591,9 +591,9 @@ export default function PosTerminalPage() {
                             <!-- Store Header -->
                             <div class="header-row">
                                 <div>
-                                    <div class="store-title">GOLDENMARK STORE</div>
+                                    <div class="store-title">MIMI SPHERE</div>
                                     <div class="store-sub">Point of Sale (POS) Official Cash Receipt</div>
-                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Dhaka, Bangladesh | Phone: +880 1909-756552</div>
+                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Dhaka, Bangladesh</div>
                                 </div>
                                 <div style="text-align: right;">
                                     <div class="inv-badge">POS SALES RECEIPT</div>
@@ -640,22 +640,21 @@ export default function PosTerminalPage() {
                             <!-- Summary Box -->
                             <div class="summary-container">
                                 <div class="summary-box">
-                                    <div class="summary-row"><span>Subtotal:</span><span class="summary-val">$${receiptData.subtotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span></div>
-                                    ${receiptData.discount > 0 ? `<div class="summary-row" style="color: #059669; font-weight: 700;"><span>Discount:</span><span class="summary-val">-$${receiptData.discount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span></div>` : ''}
-                                    ${receiptData.tax > 0 ? `<div class="summary-row"><span>Tax:</span><span class="summary-val">$${receiptData.tax.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span></div>` : ''}
+                                    <div class="summary-row"><span>Subtotal:</span><span class="summary-val">৳${receiptData.subtotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span></div>
+                                    ${receiptData.discount > 0 ? `<div class="summary-row" style="color: #059669; font-weight: 700;"><span>Discount:</span><span class="summary-val">-৳${receiptData.discount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span></div>` : ''}
+                                    ${receiptData.tax > 0 ? `<div class="summary-row" style="color: #64748b;"><span>Tax:</span><span class="summary-val">৳${receiptData.tax.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span></div>` : ''}
                                     
                                     <div class="grand-total-row">
                                         <span>TOTAL PAID:</span>
-                                        <span style="font-family: monospace;">$${receiptData.total.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
+                                        <span style="font-family: monospace;">৳${receiptData.total.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
                                     </div>
-
                                     <div class="summary-row" style="font-size: 11px; color: #64748b; margin-top: 8px;">
                                         <span>Payment Method:</span>
                                         <span style="font-weight: 900; text-transform: uppercase; color: #0f172a;">${receiptData.payment_method}</span>
                                     </div>
                                     ${receiptData.payment_method === 'cash' ? `
-                                        <div class="summary-row" style="font-size: 11px;"><span>Cash Tendered:</span><span class="summary-val">$${receiptData.tendered_amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span></div>
-                                        <div class="summary-row" style="font-size: 11px; font-weight: 800; color: #059669;"><span>Change Due:</span><span class="summary-val">$${receiptData.change_amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span></div>
+                                        <div class="summary-row" style="font-size: 11px;"><span>Cash Tendered:</span><span class="summary-val">৳${receiptData.tendered_amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span></div>
+                                        <div class="summary-row" style="font-size: 11px; font-weight: 800; color: #059669;"><span>Change Due:</span><span class="summary-val">৳${receiptData.change_amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span></div>
                                     ` : ''}
                                 </div>
                             </div>

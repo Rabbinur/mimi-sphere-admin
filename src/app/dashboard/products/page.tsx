@@ -2,16 +2,19 @@
 
 import { useAllCategoryQuery } from "@/components/Redux/RTK/categoryApi";
 import { useAdminProductsQuery, useDeleteProductMutation, useImportCjProductsMutation, useUpdateProductMutation } from "@/components/Redux/RTK/productApi";
-import { ChevronLeft, ChevronRight, Clock, Edit3, Filter, Flame, Loader2, Search, Star, Trash2, X, Zap } from "lucide-react";
+import { Barcode, ChevronLeft, ChevronRight, Clock, Edit3, Filter, Flame, Loader2, Search, Star, Trash2, X, Zap } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { BarcodeModal } from "./inventory/_components/BarcodeModal";
 
 interface TProduct {
     _id: string;
     product_title: string;
     product_description: string;
     thumbnail?: string;
+    sku?: string;
+    barcode?: string;
     product_price: number;
     product_categories?: Array<{ _id: string; name: string }> | string[];
     quantity: number;
@@ -67,6 +70,7 @@ const AdminProductsPage = () => {
     const [importKeyword, setImportKeyword] = useState("hoodie");
     const [importCategoryId, setImportCategoryId] = useState("");
     const [importType, setImportType] = useState<"multi" | "single">("multi");
+    const [barcodeModalVariant, setBarcodeModalVariant] = useState<any>(null);
 
     const queryArgs = {
         searchTerm: searchTerm,
@@ -411,23 +415,39 @@ const AdminProductsPage = () => {
                                         {product.product_status || 'active'}
                                     </button>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex items-center justify-end gap-3">
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex items-center justify-end gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setBarcodeModalVariant({
+                                            id: product._id,
+                                            sku: product.sku,
+                                            barcode: product.barcode || product.sku,
+                                            product: { name: product.product_title },
+                                            available_quantity: product.quantity,
+                                            price: product.product_price,
+                                        })}
+                                        title="Print Barcode Label"
+                                        className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border border-blue-200 text-blue-700 bg-blue-50/60 hover:bg-blue-100 transition-colors cursor-pointer"
+                                    >
+                                        <Barcode className="h-3.5 w-3.5 mr-1 text-blue-600" /> Barcode
+                                    </button>
+
                                     <Link
                                         href={`/dashboard/products/edit/${product._id}`}
-                                        className="inline-flex items-center px-3 py-1 rounded-md text-sm border border-gray-200 hover:bg-gray-50"
+                                        className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold border border-gray-200 hover:bg-gray-50 text-gray-700"
                                     >
-                                        <Edit3 className="h-4 w-4 mr-2" /> Edit
+                                        <Edit3 className="h-3.5 w-3.5 mr-1" /> Edit
                                     </Link>
 
                                     <button
                                         onClick={() => handleDelete(product._id)}
                                         disabled={isDeleting}
-                                        className="inline-flex items-center px-3 py-1 rounded-md text-sm border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-60"
+                                        className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-60 cursor-pointer"
                                     >
                                         {isDeleting ? (
-                                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                            <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
                                         ) : (
-                                            <Trash2 className="h-4 w-4 mr-2" />
+                                            <Trash2 className="h-3.5 w-3.5 mr-1" />
                                         )}
                                         Delete
                                     </button>
@@ -611,6 +631,13 @@ const AdminProductsPage = () => {
                     </div>
                 </div>
             )}
+
+            {/* Barcode Sticker Label Modal */}
+            <BarcodeModal
+                isOpen={!!barcodeModalVariant}
+                onClose={() => setBarcodeModalVariant(null)}
+                variant={barcodeModalVariant}
+            />
         </div>
     );
 };
