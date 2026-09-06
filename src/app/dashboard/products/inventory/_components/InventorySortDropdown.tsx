@@ -33,14 +33,14 @@ export function InventorySortDropdown({
     ) || SORT_OPTIONS[0];
 
     return (
-        <div className="relative" ref={ref}>
+        <div className="relative shrink-0" ref={ref}>
             <button
                 onClick={() => setOpen((o) => !o)}
-                className="flex items-center gap-3 px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[13px] font-bold text-heading hover:bg-[#F7FAFC] transition-all shadow-xs"
+                className="flex items-center gap-1.5 sm:gap-2.5 px-3 sm:px-4 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-[13px] font-bold text-slate-800 hover:bg-slate-50 transition-all shadow-2xs cursor-pointer"
             >
-                <span className="text-[#A0AEC0] font-medium">Sort by:</span>
-                <span>{activeOption.label}</span>
-                <ChevronDown className="w-4 h-4 text-[#A0AEC0]" />
+                <span className="text-slate-400 font-medium hidden sm:inline">Sort by:</span>
+                <span className="truncate max-w-[110px] sm:max-w-none">{activeOption.label}</span>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             </button>
 
             {open && (
