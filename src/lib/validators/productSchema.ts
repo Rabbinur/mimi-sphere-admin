@@ -22,6 +22,15 @@ export const productSchema = z.object({
   discount_percentage: z.number().min(0).max(100).optional(),
 
   sku: z.string().optional(),
+  barcode: z.string().optional(),
+  brand: z.string().optional(),
+  seo_title: z.string().optional(),
+  seo_description: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  shipping_policy: z.string().optional(),
+  return_policy: z.string().optional(),
+  continue_selling: z.boolean().optional(),
+  charge_tax: z.boolean().optional(),
 
   moq: z.number().min(1, "MOQ must be at least 1").optional(),
 

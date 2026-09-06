@@ -43,8 +43,14 @@ export default function EditProductPage() {
             compare_at_price: 0,
 
             sku: "",
+            barcode: "",
+            brand: "",
+            seo_title: "",
+            seo_description: "",
+            tags: [],
+            continue_selling: false,
             quantity: 0,
-            moq: 0,
+            moq: 1,
             country_of_origin: "",
             product_categories: [],
             product_vendor: "",
@@ -58,6 +64,8 @@ export default function EditProductPage() {
             is_limited_time_offer: false,
             is_pre_order: false,
             pre_order_message: "",
+            product_options: [],
+            product_variants: [],
         },
     })
 
@@ -74,8 +82,15 @@ export default function EditProductPage() {
                 compare_at_price: Number(product.compare_at_price) || 0,
 
                 sku: product.sku || "",
+                barcode: product.barcode || "",
+                brand: product.brand || "",
+                seo_title: product.seo_title || "",
+                seo_description: product.seo_description || "",
+                tags: product.tags || [],
+                continue_selling: !!product.continue_selling,
+                charge_tax: !!product.charge_tax,
                 quantity: Number(product.quantity) || 0,
-                moq: Number(product.moq) || 0,
+                moq: Number(product.moq) || 1,
                 country_of_origin: product.country_of_origin || "",
                 product_categories: (product.product_categories || []).map((c: any) => typeof c === 'string' ? c : c._id),
 
@@ -249,7 +264,9 @@ export default function EditProductPage() {
                 variant_price: Number(v.variant_price),
                 compare_at_price: v.compare_at_price ? Number(v.compare_at_price) : undefined,
                 variant_quantity: Number(v.variant_quantity || 0),
-                image: v.image,
+                sku: v.sku || undefined,
+                barcode: v.barcode || undefined,
+                image: v.image || undefined,
             }))
         }
 
@@ -265,81 +282,114 @@ export default function EditProductPage() {
     if (isLoading) return <div className="p-10 text-center">Loading product data...</div>
 
     return (
-        <div className="min-h-screen bg-background">
-            <div className="sticky top-0 z-30 border-b bg-white/80 backdrop-blur">
-                <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
-                    <div className="flex items-center gap-4">
-                        <Link href="/dashboard/products" className="rounded-md p-1 hover:bg-muted">
-                            <ArrowLeft className="h-5 w-5" />
-                        </Link>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span>Products</span>
-                            <ChevronRight className="h-4 w-4" />
-                            <span className="font-medium text-foreground">Edit Product</span>
-                        </div>
-                    </div>
+        <div className="max-w-full mx-auto pb-12 pt-2 px-3 sm:px-6 space-y-4">
+            {/* Header Area */}
+            <div className="flex items-center justify-between py-1 border-b border-slate-100 mb-2">
+                <div className="flex items-center gap-2">
+                    <Link
+                        href="/dashboard/products"
+                        className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                    </Link>
+                    <h1 className="text-xl font-bold text-slate-800 tracking-tight">
+                        Edit Product: <span className="text-primary font-black">{form.watch("product_title")}</span>
+                    </h1>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <Badge
+                        variant={
+                            form.watch("product_status") === "active"
+                                ? "default"
+                                : "secondary"
+                        }
+                    >
+                        {form.watch("product_status") || "draft"}
+                    </Badge>
                 </div>
             </div>
 
-            <div className="container mx-auto mt-8 px-4 lg:px-8">
-                <Form {...form}>
-                    <form
-                        className="grid grid-cols-1 gap-8 lg:grid-cols-3"
-                        onSubmit={form.handleSubmit(onSubmit, (errors) => {
-                            console.error("Form Validation Errors:", errors);
-                            toast.error("Please fix the errors in the form before submitting.");
-                        })}
-                    >
-                        <div className="lg:col-span-2 space-y-8">
-                            <BasicInfoCard form={form} />
-                            <PricingCard form={form} />
-                            <OptionsVariantsCard
-                                options={options}
-                                optionValue={optionValue}
-                                setOptionValue={setOptionValue}
-                                addOption={addOption}
-                                removeOption={removeOption}
-                                updateOptionName={updateOptionName}
-                                addOptionValue={addOptionValue}
-                                removeOptionValue={removeOptionValue}
-                                variants={variants}
-                                setVariants={setVariants}
-                                generateVariants={generateVariants}
-                                form={form}
-                            />
-                        </div>
+            <Form {...form}>
+                <form
+                    className="space-y-4"
+                    onSubmit={form.handleSubmit(onSubmit, (errors) => {
+                        console.error("Form Validation Errors:", errors);
+                        toast.error("Please fix the errors in the form before submitting.");
+                    })}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                            e.preventDefault()
+                        }
+                    }}
+                >
+                    {/* Basic Information */}
+                    <BasicInfoCard form={form} />
 
-                        <div className="space-y-6 lg:sticky lg:top-24 h-fit">
-                            <div className="rounded-lg border bg-card p-4">
-                                <h3 className="mb-3 text-xs font-semibold uppercase text-muted-foreground">Status</h3>
-                                <Badge variant={form.watch("product_status") === "active" ? "default" : "secondary"}>
-                                    {form.watch("product_status")}
-                                </Badge>
-                            </div>
+                    {/* Pricing */}
+                    <PricingCard form={form} />
 
-                            <div className="    rounded-lg border bg-card p-4">
-                                <InventoryCard form={form} />
-                            </div>
+                    {/* Inventory & Barcode */}
+                    <InventoryCard form={form} />
 
-                            <DiscoverySettingsCard form={form} />
+                    {/* Variants Matrix */}
+                    <OptionsVariantsCard
+                        options={options}
+                        optionValue={optionValue}
+                        setOptionValue={setOptionValue}
+                        addOption={addOption}
+                        removeOption={removeOption}
+                        updateOptionName={updateOptionName}
+                        addOptionValue={addOptionValue}
+                        removeOptionValue={removeOptionValue}
+                        variants={variants}
+                        setVariants={setVariants}
+                        generateVariants={generateVariants}
+                        form={form}
+                    />
 
-                            <CategoryCard form={form} />
+                    {/* Category Selection */}
+                    <CategoryCard form={form} />
 
-                            <div className="rounded-lg border bg-card p-4">
-                                <PhysicalDetailsCard form={form} />
-                            </div>
-                            <div className="rounded-lg border bg-card p-4 space-y-3">
-                                <Button type="submit" className="w-full" disabled={isUpdating}>
-                                    {isUpdating ? "Updating..." : "Update Product"}
-                                </Button>
-                                <Button type="button" variant="outline" className="w-full" asChild>
-                                    <Link href="/dashboard/products">Cancel</Link>
-                                </Button>
-                            </div>
-                        </div>
-                    </form>
-                </Form>
-            </div>
+                    {/* Discovery & SEO Settings */}
+                    <DiscoverySettingsCard form={form} />
+
+                    {/* Physical Details & Shipping */}
+                    <PhysicalDetailsCard form={form} />
+
+                    {/* Action Bar Footer */}
+                    <div className="flex sm:flex-row flex-col items-center justify-end gap-3 p-3 bg-white rounded-xl border border-slate-200/80 shadow-2xs">
+                        <Link
+                            href="/dashboard/products"
+                            className="text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors order-last sm:order-first px-3 py-2"
+                        >
+                            Cancel
+                        </Link>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            disabled={isUpdating}
+                            onClick={() => {
+                                form.setValue("product_status", "draft");
+                                form.handleSubmit(onSubmit)();
+                            }}
+                            className="w-full sm:w-auto px-5 py-2 text-xs font-semibold"
+                        >
+                            Save as Draft
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={isUpdating}
+                            onClick={() => {
+                                form.setValue("product_status", "active");
+                            }}
+                            className="w-full sm:w-auto px-6 py-2 bg-blue-600 hover:bg-blue-700 text-xs font-semibold text-white shadow-sm"
+                        >
+                            {isUpdating ? "Updating..." : "Update Product"}
+                        </Button>
+                    </div>
+                </form>
+            </Form>
         </div>
     )
 }

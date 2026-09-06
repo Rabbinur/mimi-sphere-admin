@@ -7,14 +7,13 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { MediaLibrary } from "@/components/ui/media-manager"
 import type { ProductFormValues } from "@/lib/validators/productSchema"
-import { ListTree, Plus, Sparkles, X } from "lucide-react"
+import { ListTree, Plus, Sparkles, X, Barcode } from "lucide-react"
 import Image from "next/image"
 import { useState } from "react"
 import type { UseFormReturn } from "react-hook-form"
 
 export default function OptionsVariantsSeoCard({
     options,
-
     optionValue,
     setOptionValue,
     addOption,
@@ -27,7 +26,6 @@ export default function OptionsVariantsSeoCard({
     generateVariants,
 }: {
     options: { name: string; values: string[] }[]
-
     optionValue: string
     setOptionValue: (s: string) => void
     addOption: () => void
@@ -79,6 +77,17 @@ export default function OptionsVariantsSeoCard({
         setSelectedIndices([])
     }
 
+    const autoGenerateVariantBarcodes = () => {
+        const newVariants = variants.map((v, idx) => {
+            const randomBarcode = Math.floor(100000000000 + Math.random() * 900000000000);
+            return {
+                ...v,
+                barcode: v.barcode || String(randomBarcode),
+            };
+        });
+        setVariants(newVariants);
+    };
+
     return (
         <Card className="shadow-sm border-muted-foreground/20">
             <CardHeader className="pb-3 border-b">
@@ -89,108 +98,115 @@ export default function OptionsVariantsSeoCard({
                             Variants Configuration
                         </CardTitle>
                         <CardDescription className="text-xs">
-                            Define attributes like size or color to auto-generate product SKUs.
+                            Define attributes like size or color to auto-generate variant combinations, SKUs & barcodes.
                         </CardDescription>
                     </div>
-                    <Button type="button" onClick={addOption} variant="outline" size="sm" className="h-8">
-                        <Plus className="h-4 w-4 mr-1" /> Add Option
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        {variants.length > 0 && (
+                            <Button
+                                type="button"
+                                onClick={autoGenerateVariantBarcodes}
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 text-xs text-indigo-600 hover:bg-indigo-50"
+                            >
+                                <Barcode className="h-3.5 w-3.5 mr-1" /> Auto Barcodes
+                            </Button>
+                        )}
+                        <Button type="button" onClick={addOption} variant="outline" size="sm" className="h-8">
+                            <Plus className="h-4 w-4 mr-1" /> Add Option
+                        </Button>
+                    </div>
                 </div>
             </CardHeader>
 
-            <CardContent className="p-4 space-y-6">
-                {/* Options Section */}
-                <div className="space-y-3">
-                    {options.length === 0 ? (
-                        <div className="text-center py-8 border-2 border-dashed rounded-lg bg-muted/30">
-                            <p className="text-sm text-muted-foreground">No options defined. Click "Add Option" to start.</p>
-                        </div>
-                    ) : (
-                        options.map((option, optionIndex) => (
-                            <div key={optionIndex} className="relative group p-4 border rounded-lg bg-card hover:border-primary/30 transition-colors">
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
-                                    onClick={() => removeOption(optionIndex)}
-                                >
-                                    <X className="h-4 w-4" />
-                                </Button>
+            <CardContent className="space-y-6 pt-4">
+                {options.map((option, index) => (
+                    <div key={index} className="p-4 rounded-xl border bg-muted/20 space-y-3 relative group">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeOption(index)}
+                            className="absolute top-2 right-2 h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        >
+                            <X className="h-4 w-4" />
+                        </Button>
 
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-semibold uppercase text-muted-foreground">Option Name</label>
-                                        <Input
-                                            value={option.name}
-                                            onChange={(e) => updateOptionName(optionIndex, e.target.value)}
-                                            placeholder="e.g. Color"
-                                            className="h-9"
-                                            onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                                        />
-                                    </div>
-                                    <div className="md:col-span-2 space-y-1.5">
-                                        <label className="text-xs font-semibold uppercase text-muted-foreground">Option Values</label>
-                                        <div className="flex flex-wrap gap-1.5 mb-2">
-                                            {option.values.map((value, valueIndex) => (
-                                                <Badge key={valueIndex} variant="secondary" className="pl-2 pr-1 py-0.5 gap-1 text-xs">
-                                                    {value}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeOptionValue(optionIndex, valueIndex)}
-                                                        className="hover:bg-destructive/20 rounded-full p-0.5"
-                                                    >
-                                                        <X className="h-3 w-3" />
-                                                    </button>
-                                                </Badge>
-                                            ))}
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <Input
-                                                value={optionValue}
-                                                onChange={(e) => setOptionValue(e.target.value)}
-                                                placeholder="Add value..."
-                                                className="h-8 text-sm"
-                                                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addOptionValue(optionIndex))}
-                                            />
-                                            <Button type="button" size="sm" variant="secondary" className="h-8" onClick={() => addOptionValue(optionIndex)}>
-                                                Add
-                                            </Button>
-                                        </div>
-                                    </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div>
+                                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1 block">Option Name</label>
+                                <Input
+                                    value={option.name}
+                                    placeholder="e.g. Size, Color, Material"
+                                    onChange={(e) => updateOptionName(index, e.target.value)}
+                                    className="h-9 font-medium"
+                                />
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1 block">Option Values</label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        value={optionValue}
+                                        placeholder="Type a value and click Add (e.g. Red, XL)"
+                                        onChange={(e) => setOptionValue(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") {
+                                                e.preventDefault()
+                                                addOptionValue(index)
+                                            }
+                                        }}
+                                        className="h-9"
+                                    />
+                                    <Button
+                                        type="button"
+                                        onClick={() => addOptionValue(index)}
+                                        variant="secondary"
+                                        size="sm"
+                                        className="h-9 px-4"
+                                    >
+                                        Add
+                                    </Button>
                                 </div>
                             </div>
-                        ))
-                    )}
-
-                    {options.length > 0 && (
-                        <div className="flex justify-center pt-2">
-                            <Button type="button"
-                                className="w-full md:w-auto px-8"
-                                disabled={!options.every((o) => o.name && o.values.length)}
-                                onClick={() => generateVariants(options)}
-                            >
-                                Generate All Variants
-                            </Button>
                         </div>
-                    )}
-                </div>
 
-                {/* Variants Table Section */}
+                        {option.values.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 pt-2">
+                                {option.values.map((val, valIdx) => (
+                                    <Badge
+                                        key={valIdx}
+                                        variant="secondary"
+                                        className="pl-2.5 pr-1.5 py-1 text-xs font-medium flex items-center gap-1.5 bg-background border"
+                                    >
+                                        {val}
+                                        <button
+                                            type="button"
+                                            onClick={() => removeOptionValue(index, valIdx)}
+                                            className="text-muted-foreground hover:text-destructive rounded-full hover:bg-muted p-0.5"
+                                        >
+                                            <X className="h-3 w-3" />
+                                        </button>
+                                    </Badge>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                ))}
+
                 {variants.length > 0 && (
-                    <div className="mt-6 pt-6 border-t">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-semibold text-sm inline-flex items-center gap-2">
-                                Generated Variants
-                                <Badge variant="outline" className="rounded-full text-[10px]">{variants.length}</Badge>
-                            </h3>
+                    <div className="space-y-4 pt-2">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <h4 className="font-semibold text-sm">
+                                Generated Variant Matrix ({variants.length})
+                            </h4>
 
                             {selectedIndices.length > 0 && (
-                                <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300">
-                                    <div className="flex items-center gap-2 p-1 pl-3 border rounded-md bg-primary/5 border-primary/20">
-                                        <span className="text-[10px] font-bold text-primary uppercase whitespace-nowrap">
-                                            Bulk Edit ({selectedIndices.length})
-                                        </span>
+                                <div className="flex items-center gap-2 bg-primary/10 p-1 px-2.5 rounded-lg border border-primary/20 text-xs animate-in fade-in">
+                                    <span className="font-medium text-primary">{selectedIndices.length} selected</span>
+                                    <div className="h-4 w-px bg-primary/20" />
+                                    <div className="flex items-center gap-1.5">
                                         <Input
                                             type="number"
                                             placeholder="Price"
@@ -236,7 +252,7 @@ export default function OptionsVariantsSeoCard({
                                 </div>
                             )}
                         </div>
- 
+
                         <div className="rounded-md border bg-muted/10 overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead className="bg-muted/50 border-b">
@@ -251,9 +267,11 @@ export default function OptionsVariantsSeoCard({
                                             <th key={i} className="px-3 py-2 text-left font-medium text-muted-foreground whitespace-nowrap">{option.name}</th>
                                         ))}
                                         <th className="px-3 py-2 text-left font-medium text-muted-foreground w-[80px]">Image</th>
-                                        <th className="px-3 py-2 text-left font-medium text-muted-foreground w-[120px]">Price (৳)</th>
-                                        <th className="px-3 py-2 text-left font-medium text-muted-foreground w-[120px]">Compare (৳)</th>
-                                        <th className="px-3 py-2 text-left font-medium text-muted-foreground w-[100px]">Quantity</th>
+                                        <th className="px-3 py-2 text-left font-medium text-muted-foreground w-[110px]">Price (৳)</th>
+                                        <th className="px-3 py-2 text-left font-medium text-muted-foreground w-[110px]">Compare (৳)</th>
+                                        <th className="px-3 py-2 text-left font-medium text-muted-foreground w-[90px]">Stock</th>
+                                        <th className="px-3 py-2 text-left font-medium text-muted-foreground w-[120px]">SKU</th>
+                                        <th className="px-3 py-2 text-left font-medium text-muted-foreground w-[120px]">Barcode</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border">
@@ -266,7 +284,7 @@ export default function OptionsVariantsSeoCard({
                                                 />
                                             </td>
                                             {options.map((option, j) => (
-                                                <td key={j} className="px-3 py-2 font-medium">
+                                                <td key={j} className="px-3 py-2 font-medium text-xs">
                                                     {variant.variant_option_values[option.name]}
                                                 </td>
                                             ))}
@@ -286,12 +304,12 @@ export default function OptionsVariantsSeoCard({
                                                     />
 
                                                     {variant.image ? (
-                                                        <div className="relative h-10 w-10 rounded overflow-hidden border bg-background">
+                                                        <div className="relative h-9 w-9 rounded overflow-hidden border bg-background shrink-0">
                                                             <Image
                                                                 src={variant.image}
                                                                 alt="Variant"
-                                                                width={40}
-                                                                height={40}
+                                                                width={36}
+                                                                height={36}
                                                                 className="h-full w-full object-cover"
                                                             />
                                                             <button
@@ -309,7 +327,7 @@ export default function OptionsVariantsSeoCard({
                                                     ) : null}
                                                 </div>
                                             </td>
-                                            <td className="px-3 py-2 font-mono">
+                                            <td className="px-2 py-2 font-mono">
                                                 <Input
                                                     type="number"
                                                     value={variant.variant_price}
@@ -318,24 +336,24 @@ export default function OptionsVariantsSeoCard({
                                                         newVariants[i] = { ...newVariants[i], variant_price: e.target.value }
                                                         setVariants(newVariants)
                                                     }}
-                                                    className={`h-8 focus-visible:ring-1 ${selectedIndices.includes(i) ? 'border-primary' : ''}`}
+                                                    className={`h-8 text-xs ${selectedIndices.includes(i) ? 'border-primary' : ''}`}
                                                     onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
                                                 />
                                             </td>
-                                            <td className="px-3 py-2">
+                                            <td className="px-2 py-2">
                                                 <Input
                                                     type="number"
-                                                    value={variant.compare_at_price}
+                                                    value={variant.compare_at_price || ""}
                                                     onChange={(e) => {
                                                         const newVariants = [...variants]
                                                         newVariants[i] = { ...newVariants[i], compare_at_price: e.target.value }
                                                         setVariants(newVariants)
                                                     }}
-                                                    className={`h-8 focus-visible:ring-1 text-muted-foreground ${selectedIndices.includes(i) ? 'border-primary' : ''}`}
+                                                    className={`h-8 text-xs text-muted-foreground ${selectedIndices.includes(i) ? 'border-primary' : ''}`}
                                                     onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
                                                 />
                                             </td>
-                                            <td className="px-3 py-2">
+                                            <td className="px-2 py-2">
                                                 <Input
                                                     type="number"
                                                     value={variant.variant_quantity ?? 0}
@@ -344,7 +362,35 @@ export default function OptionsVariantsSeoCard({
                                                         newVariants[i] = { ...newVariants[i], variant_quantity: Number(e.target.value) }
                                                         setVariants(newVariants)
                                                     }}
-                                                    className={`h-8 focus-visible:ring-1 ${selectedIndices.includes(i) ? 'border-primary' : ''}`}
+                                                    className={`h-8 text-xs ${selectedIndices.includes(i) ? 'border-primary' : ''}`}
+                                                    onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
+                                                />
+                                            </td>
+                                            <td className="px-2 py-2">
+                                                <Input
+                                                    type="text"
+                                                    placeholder="SKU"
+                                                    value={variant.sku || ""}
+                                                    onChange={(e) => {
+                                                        const newVariants = [...variants]
+                                                        newVariants[i] = { ...newVariants[i], sku: e.target.value }
+                                                        setVariants(newVariants)
+                                                    }}
+                                                    className="h-8 text-xs font-mono"
+                                                    onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
+                                                />
+                                            </td>
+                                            <td className="px-2 py-2">
+                                                <Input
+                                                    type="text"
+                                                    placeholder="Barcode"
+                                                    value={variant.barcode || ""}
+                                                    onChange={(e) => {
+                                                        const newVariants = [...variants]
+                                                        newVariants[i] = { ...newVariants[i], barcode: e.target.value }
+                                                        setVariants(newVariants)
+                                                    }}
+                                                    className="h-8 text-xs font-mono"
                                                     onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
                                                 />
                                             </td>

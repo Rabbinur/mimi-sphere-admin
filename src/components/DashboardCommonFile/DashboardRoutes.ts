@@ -42,8 +42,6 @@ export const dashboardRoutes: DashboardRoute[] = [
       { href: "/dashboard/products", label: "All Products" },
       { href: "/dashboard/products/create", label: "Create Product" },
       { href: "/dashboard/products/inventory", label: "Stock & Inventory" },
-      { href: "/dashboard/products/import/alg", label: "Import Alg" },
-      { href: "/dashboard/products/import/kcbazar", label: "Import Kcbazar" },
     ],
   },
   {

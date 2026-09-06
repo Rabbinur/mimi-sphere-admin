@@ -254,22 +254,7 @@ const AdminProductsPage = () => {
                         Add Product
                     </Link>
 
-                    <button
-                        onClick={() => setIsImportModalOpen(true)}
-                        disabled={isImporting}
-                        className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg shadow-sm hover:opacity-95 disabled:opacity-70 disabled:cursor-not-allowed whitespace-nowrap"
-                    >
-                        {isImporting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                        Cjdropshipping
-                    </button>
 
-                    <Link href="/dashboard/products/import/alg" className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg shadow-sm hover:opacity-95 whitespace-nowrap">
-                        ALG Limited
-                    </Link>
-
-                    <Link href="/dashboard/products/import/kcbazar" className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg shadow-sm hover:opacity-95 whitespace-nowrap">
-                        kcbazar importer
-                    </Link>
                 </div>
             </header>
 
