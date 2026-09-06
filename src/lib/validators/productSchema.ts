@@ -17,6 +17,8 @@ export const productSchema = z.object({
 
   compare_at_price: z.number().optional(),
 
+  cost_price: z.number().optional(),
+
   discount_percentage: z.number().min(0).max(100).optional(),
 
   sku: z.string().optional(),
@@ -71,6 +73,9 @@ export const productSchema = z.object({
         variant_price: z.number().positive(),
         variant_quantity: z.number().int().min(0).optional(),
         compare_at_price: z.number().optional(),
+        cost_price: z.number().optional(),
+        sku: z.string().optional(),
+        barcode: z.string().optional(),
         image: z.string().optional(),
       }),
     )

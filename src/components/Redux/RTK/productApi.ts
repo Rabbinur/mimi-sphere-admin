@@ -138,6 +138,48 @@ const productApi = baseApi.injectEndpoints({
         body: data,
       }),
     }),
+    getInventory: builder.query({
+      query: (params) => {
+        const queryParams = new URLSearchParams();
+        if (params) {
+          if (params.page) queryParams.append("page", params.page.toString());
+          if (params.per_page) queryParams.append("per_page", params.per_page.toString());
+          if (params.search) queryParams.append("search", params.search);
+          if (params.sort_by) queryParams.append("sort_by", params.sort_by);
+          if (params.sort_order) queryParams.append("sort_order", params.sort_order);
+          if (params.status_filter) queryParams.append("status_filter", params.status_filter);
+        }
+        return {
+          url: `/products/inventory?${queryParams.toString()}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["products"],
+    }),
+    updateInventoryQuantity: builder.mutation({
+      query: ({ id, quantity }) => ({
+        url: "/products/inventory/update-stock",
+        method: "PUT",
+        body: { id, quantity },
+      }),
+      invalidatesTags: ["products"],
+    }),
+    bulkUpdateInventoryQuantity: builder.mutation({
+      query: ({ ids, action, value }) => ({
+        url: "/products/inventory/bulk-update-stock",
+        method: "PUT",
+        body: { ids, action, value },
+      }),
+      invalidatesTags: ["products"],
+    }),
+    importInventoryCsv: builder.mutation({
+      query: (formData) => ({
+        url: "/products/inventory/import-csv",
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["products"],
+    }),
   }),
   overrideExisting: false,
 });
@@ -156,4 +198,8 @@ export const {
   useImportCjProductsMutation,
   useImportKcbazarProductMutation,
   useTrendyProductQuery,
+  useGetInventoryQuery,
+  useUpdateInventoryQuantityMutation,
+  useBulkUpdateInventoryQuantityMutation,
+  useImportInventoryCsvMutation,
 } = productApi;

@@ -41,9 +41,15 @@ export const dashboardRoutes: DashboardRoute[] = [
     children: [
       { href: "/dashboard/products", label: "All Products" },
       { href: "/dashboard/products/create", label: "Create Product" },
+      { href: "/dashboard/products/inventory", label: "Stock & Inventory" },
       { href: "/dashboard/products/import/alg", label: "Import Alg" },
       { href: "/dashboard/products/import/kcbazar", label: "Import Kcbazar" },
     ],
+  },
+  {
+    href: "/dashboard/pos",
+    icon: ShoppingCart,
+    label: "POS Terminal",
   },
   {
     href: "/dashboard/categories",
@@ -65,6 +71,7 @@ export const dashboardRoutes: DashboardRoute[] = [
     icon: ShoppingCart,
     children: [
       { href: "/dashboard/orders", label: "All Orders" },
+      { href: "/dashboard/pos", label: "POS Terminal" },
       { href: "/dashboard/orders/create", label: "Create Order" },
       { href: "/dashboard/custom-orders", label: "Request Orders" },
       { href: "/dashboard/orders/checkout-recovery", label: "Checkout Recovery" },
