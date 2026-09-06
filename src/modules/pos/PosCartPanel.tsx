@@ -282,39 +282,50 @@ export function PosCartPanel({
         )}
 
         {/* Pricing Breakdown */}
-        <div className="space-y-1.5 text-xs text-slate-600 pt-0.5">
+        <div className="space-y-1.5 text-xs text-slate-600 pt-1">
           <div className="flex justify-between font-medium">
-            <span>Subtotal</span>
+            <span>Subtotal ({totalItemCount} {totalItemCount === 1 ? "item" : "items"})</span>
             <span className="font-mono font-bold text-slate-900">৳{subtotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
           </div>
 
-          <div className="flex justify-between font-bold text-emerald-600">
-            <span className="flex items-center gap-1">
-              <Tag className="w-3 h-3" />
-              Discount
-            </span>
-            <span className="font-mono">
-              -৳{discountAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-            </span>
-          </div>
+          {discountAmount > 0 && (
+            <div className="flex justify-between font-bold text-emerald-600">
+              <span className="flex items-center gap-1">
+                <Tag className="w-3 h-3" />
+                Discount
+              </span>
+              <span className="font-mono">
+                -৳{discountAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+          )}
 
-          <div className="flex justify-between text-base font-black text-slate-950 pt-2 border-t border-slate-200">
-            <span>Grand Total</span>
-            <span className="font-mono text-slate-950 text-xl font-black">
+          <div className="flex justify-between items-baseline text-base font-black text-slate-950 pt-2 border-t border-slate-200">
+            <span className="text-xs sm:text-sm uppercase tracking-wider text-slate-700">Payable Total</span>
+            <span className="font-mono text-slate-950 text-xl sm:text-2xl font-black">
               ৳{grandTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}
             </span>
           </div>
         </div>
 
-        {/* Checkout Button */}
+        {/* Responsive Pay / Checkout Button */}
         <button
           type="button"
           disabled={cartItems.length === 0}
           onClick={onOpenCheckout}
-          className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-black transition-all shadow-md active:scale-99 flex items-center justify-center gap-2 cursor-pointer shadow-emerald-600/20"
+          className="w-full py-3 sm:py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-2xl text-xs sm:text-sm font-black transition-all shadow-lg shadow-emerald-600/25 flex items-center justify-between cursor-pointer select-none"
         >
-          <CreditCard className="w-4 h-4" />
-          <span>Pay / Checkout (F9) →</span>
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-xl bg-emerald-700/70 flex items-center justify-center shrink-0">
+              <CreditCard className="w-3.5 h-3.5 text-white" />
+            </div>
+            <span>Pay / Checkout</span>
+            <span className="hidden sm:inline-block text-[10px] font-semibold text-emerald-100 bg-emerald-700/60 px-1.5 py-0.5 rounded">F9</span>
+          </div>
+          <div className="flex items-center gap-1 font-mono text-xs sm:text-sm font-black">
+            <span>৳{grandTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
+            <span className="text-base font-bold">→</span>
+          </div>
         </button>
       </div>
     </div>
