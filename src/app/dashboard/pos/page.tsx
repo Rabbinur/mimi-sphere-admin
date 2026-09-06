@@ -561,11 +561,64 @@ export default function PosTerminalPage() {
                             color: #64748b;
                         }
 
+                        /* Mobile Specific Responsive Tweaks */
+                        @media (max-width: 640px) {
+                            body { padding: 10px 8px; }
+                            .toolbar {
+                                padding: 10px 12px;
+                                margin-bottom: 12px;
+                                border-radius: 14px;
+                                flex-wrap: wrap;
+                                gap: 8px;
+                            }
+                            .toolbar-title { font-size: 12px; }
+                            .btn-group { width: 100%; justify-content: flex-end; gap: 6px; }
+                            .btn-print { padding: 8px 14px; font-size: 11.5px; flex: 1; justify-content: center; }
+                            .btn-close { padding: 8px 12px; font-size: 11.5px; }
+
+                            .invoice-card { padding: 16px 14px; border-radius: 16px; }
+                            .header-row {
+                                flex-direction: column;
+                                gap: 12px;
+                                align-items: flex-start;
+                                padding-bottom: 14px;
+                            }
+                            .header-right { text-align: left !important; }
+                            .store-title { font-size: 18px; }
+                            .inv-number { font-size: 15px; }
+
+                            .info-grid {
+                                grid-template-columns: 1fr;
+                                gap: 14px;
+                                padding: 12px;
+                                margin: 16px 0;
+                            }
+                            .info-row {
+                                font-size: 11px;
+                                gap: 8px;
+                            }
+                            .info-val {
+                                word-break: break-all;
+                                max-width: 60%;
+                                text-align: right;
+                            }
+
+                            table { margin: 14px 0; }
+                            th { font-size: 9.5px; padding: 8px 3px; }
+                            td { padding: 8px 3px; font-size: 11px; }
+                            .col-unit-price { display: none; }
+
+                            .summary-container { justify-content: stretch; margin-top: 14px; }
+                            .summary-box { width: 100%; padding: 14px; }
+                            .grand-total-row { font-size: 14.5px; }
+                        }
+
                         @media print {
                             body { background: #ffffff; padding: 0; }
                             .toolbar { display: none !important; }
                             .invoice-card { border: none; box-shadow: none; padding: 0; }
                             .page-container { max-width: 100%; }
+                            .col-unit-price { display: table-cell !important; }
                         }
                     </style>
                 </head>
@@ -574,7 +627,7 @@ export default function PosTerminalPage() {
                         <!-- Top Toolbar -->
                         <div class="toolbar">
                             <div class="toolbar-title">
-                                <span>🧾 POS SALE INVOICE COMPLETE</span>
+                                <span>🧾 POS SALE INVOICE</span>
                             </div>
                             <div class="btn-group">
                                 <button class="btn-print" onclick="window.print()">
@@ -593,9 +646,9 @@ export default function PosTerminalPage() {
                                 <div>
                                     <div class="store-title">MIMI SPHERE</div>
                                     <div class="store-sub">Point of Sale (POS) Official Cash Receipt</div>
-                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Dhaka, Bangladesh</div>
+                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Dhaka, Bangladesh</div>
                                 </div>
-                                <div style="text-align: right;">
+                                <div class="header-right" style="text-align: right;">
                                     <div class="inv-badge">POS SALES RECEIPT</div>
                                     <div class="inv-number">#${receiptData.receipt_number}</div>
                                 </div>
@@ -625,11 +678,11 @@ export default function PosTerminalPage() {
                             <table>
                                 <thead>
                                     <tr>
-                                        <th style="width: 40px;">#</th>
+                                        <th style="width: 28px;">#</th>
                                         <th>Item Description</th>
-                                        <th style="text-align: center; width: 60px;">Qty</th>
-                                        <th style="text-align: right; width: 100px;">Unit Price</th>
-                                        <th style="text-align: right; width: 110px;">Total</th>
+                                        <th style="text-align: center; width: 45px;">Qty</th>
+                                        <th class="col-unit-price" style="text-align: right; width: 90px;">Unit Price</th>
+                                        <th style="text-align: right; width: 95px;">Total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -847,6 +900,7 @@ export default function PosTerminalPage() {
                 onClose={() => setIsReceiptOpen(false)}
                 receiptData={receiptData}
                 onOpenFullInvoice={openFullInvoiceNewTab}
+                onOpenThermalReceipt={openThermalReceiptNewTab}
             />
 
             {/* Daily Shift Sales Summary Modal */}
