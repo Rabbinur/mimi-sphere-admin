@@ -1,5 +1,4 @@
-"use client"
-
+import { useAllCategoryQuery } from "@/components/Redux/RTK/categoryApi"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,6 +23,7 @@ export default function OptionsVariantsSeoCard({
     variants,
     setVariants,
     generateVariants,
+    form,
 }: {
     options: { name: string; values: string[] }[]
     optionValue: string
@@ -38,6 +38,7 @@ export default function OptionsVariantsSeoCard({
     generateVariants: (o: { name: string; values: string[] }[]) => void
     form: UseFormReturn<ProductFormValues>
 }) {
+    const { data: categories } = useAllCategoryQuery(false)
     const [selectedIndices, setSelectedIndices] = useState<number[]>([])
     const [bulkPrice, setBulkPrice] = useState("")
     const [bulkComparePrice, setBulkComparePrice] = useState("")
@@ -77,11 +78,46 @@ export default function OptionsVariantsSeoCard({
         setSelectedIndices([])
     }
 
-    const autoGenerateVariantBarcodes = () => {
-        const newVariants = variants.map((v, idx) => {
+    const getCategoryCode = (name?: string) => {
+        if (!name) return "PRD";
+        const words = name.replace(/[^a-zA-Z0-9 ]/g, "").trim().split(/\s+/).filter(Boolean);
+        if (words.length === 0) return "PRD";
+        if (words.length === 1) return words[0].substring(0, 4).toUpperCase();
+        if (words.length === 2) {
+            return `${words[0].charAt(0).toUpperCase()}${words[1].substring(0, 3).toUpperCase()}`;
+        }
+        return words.map(w => w.charAt(0).toUpperCase()).join("").substring(0, 4);
+    };
+
+    const getProductCode = (title?: string) => {
+        if (!title) return "ITM";
+        const words = title.replace(/[^a-zA-Z0-9 ]/g, "").trim().split(/\s+/).filter(Boolean);
+        if (words.length === 0) return "ITM";
+        if (words.length === 1) return words[0].substring(0, 4).toUpperCase();
+        if (words.length === 2) {
+            return `${words[0].charAt(0).toUpperCase()}${words[1].substring(0, 3).toUpperCase()}`;
+        }
+        return words.map(w => w.charAt(0).toUpperCase()).join("").substring(0, 4);
+    };
+
+    const autoGenerateVariantIdentifiers = () => {
+        const title = form?.getValues ? form.getValues("product_title") || "PRD" : "PRD";
+        const selectedCatIds = form?.getValues ? form.getValues("product_categories") || [] : [];
+        const matchedCategory = categories?.find((c: any) => selectedCatIds.includes(c._id));
+
+        const catCode = getCategoryCode(matchedCategory?.name);
+        const prodCode = getProductCode(title);
+
+        const newVariants = variants.map((v) => {
+            const vals = Object.values(v.variant_option_values || {})
+                .map((val: any) => String(val).replace(/[^a-zA-Z0-9]/g, "").toUpperCase().substring(0, 3))
+                .filter(Boolean)
+                .join("-");
+            const rand = Math.floor(1000 + Math.random() * 9000);
             const randomBarcode = Math.floor(100000000000 + Math.random() * 900000000000);
             return {
                 ...v,
+                sku: v.sku || `${catCode}-${prodCode}${vals ? `-${vals}` : ""}-${rand}`,
                 barcode: v.barcode || String(randomBarcode),
             };
         });
@@ -105,12 +141,12 @@ export default function OptionsVariantsSeoCard({
                         {variants.length > 0 && (
                             <Button
                                 type="button"
-                                onClick={autoGenerateVariantBarcodes}
+                                onClick={autoGenerateVariantIdentifiers}
                                 variant="ghost"
                                 size="sm"
                                 className="h-8 text-xs text-indigo-600 hover:bg-indigo-50"
                             >
-                                <Barcode className="h-3.5 w-3.5 mr-1" /> Auto Barcodes
+                                <Sparkles className="h-3.5 w-3.5 mr-1" /> Auto SKU & Barcodes
                             </Button>
                         )}
                         <Button type="button" onClick={addOption} variant="outline" size="sm" className="h-8">
@@ -177,7 +213,7 @@ export default function OptionsVariantsSeoCard({
                                 {option.values.map((val, valIdx) => (
                                     <Badge
                                         key={valIdx}
-                                        variant="secondary"
+                                        variant="outline"
                                         className="pl-2.5 pr-1.5 py-1 text-xs font-medium flex items-center gap-1.5 bg-background border"
                                     >
                                         {val}

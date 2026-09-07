@@ -17,6 +17,7 @@ import BasicInfoCard from "@/components/Pages/Dashboard/product-create/BasicInfo
 import CategoryCard from "@/components/Pages/Dashboard/product-create/CategoryCard"
 import InventoryCard from "@/components/Pages/Dashboard/product-create/InventoryCard"
 import OptionsVariantsCard from "@/components/Pages/Dashboard/product-create/OptionsVariantsCard"
+import { useAllCategoryQuery } from "@/components/Redux/RTK/categoryApi"
 import DiscoverySettingsCard from "@/components/Pages/Dashboard/product-create/DiscoverySettingsCard"
 import PhysicalDetailsCard from "@/components/Pages/Dashboard/product-create/PhysicalDetailsCard"
 import PricingCard from "@/components/Pages/Dashboard/product-create/PricingCard"
@@ -25,6 +26,7 @@ import { type ProductFormValues, productResolver } from "@/lib/validators/produc
 export default function EditProductPage() {
     const { id } = useParams()
     const router = useRouter()
+    const { data: categories } = useAllCategoryQuery(false)
     const { data: productData, isLoading } = useSingleProductByIdQuery(id)
     const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation()
 
@@ -242,15 +244,56 @@ export default function EditProductPage() {
             return result
         }
 
-        const combinations = generateCombinations(optionsList)
-        const newVariants = combinations.map((combination) => ({
-            variant_option_values: combination,
-            variant_price: String(form.getValues("product_price") || 0),
-            compare_at_price: String(form.getValues("compare_at_price") || 0),
-            variant_quantity: 0,
-            image: "",
-            product_weight: 0,
-        }))
+        const getCategoryCode = (name?: string) => {
+            if (!name) return "PRD";
+            const words = name.replace(/[^a-zA-Z0-9 ]/g, "").trim().split(/\s+/).filter(Boolean);
+            if (words.length === 0) return "PRD";
+            if (words.length === 1) return words[0].substring(0, 4).toUpperCase();
+            if (words.length === 2) {
+                return `${words[0].charAt(0).toUpperCase()}${words[1].substring(0, 3).toUpperCase()}`;
+            }
+            return words.map(w => w.charAt(0).toUpperCase()).join("").substring(0, 4);
+        };
+
+        const getProductCode = (title?: string) => {
+            if (!title) return "ITM";
+            const words = title.replace(/[^a-zA-Z0-9 ]/g, "").trim().split(/\s+/).filter(Boolean);
+            if (words.length === 0) return "ITM";
+            if (words.length === 1) return words[0].substring(0, 4).toUpperCase();
+            if (words.length === 2) {
+                return `${words[0].charAt(0).toUpperCase()}${words[1].substring(0, 3).toUpperCase()}`;
+            }
+            return words.map(w => w.charAt(0).toUpperCase()).join("").substring(0, 4);
+        };
+
+        const title = form.getValues("product_title") || "PRD";
+        const selectedCatIds = form.getValues("product_categories") || [];
+        const matchedCategory = categories?.find((c: any) => selectedCatIds.includes(c._id));
+
+        const catCode = getCategoryCode(matchedCategory?.name);
+        const prodCode = getProductCode(title);
+
+        const combinations = generateCombinations(optionsList);
+
+        const newVariants = combinations.map((combination) => {
+            const vals = Object.values(combination || {})
+                .map((val: any) => String(val).replace(/[^a-zA-Z0-9]/g, "").toUpperCase().substring(0, 3))
+                .filter(Boolean)
+                .join("-");
+            const rand = Math.floor(1000 + Math.random() * 9000);
+            const randomBarcode = Math.floor(100000000000 + Math.random() * 900000000000);
+
+            return {
+                variant_option_values: combination,
+                variant_price: String(form.getValues("product_price") || 0),
+                compare_at_price: String(form.getValues("compare_at_price") || 0),
+                variant_quantity: 0,
+                sku: `${catCode}-${prodCode}${vals ? `-${vals}` : ""}-${rand}`,
+                barcode: String(randomBarcode),
+                image: "",
+                product_weight: 0,
+            };
+        })
 
         setVariants(newVariants)
     }
@@ -331,6 +374,9 @@ export default function EditProductPage() {
                     {/* Basic Information */}
                     <BasicInfoCard form={form} />
 
+                    {/* Category Selection */}
+                    <CategoryCard form={form} />
+
                     {/* Pricing */}
                     <PricingCard form={form} />
 
@@ -352,9 +398,6 @@ export default function EditProductPage() {
                         generateVariants={generateVariants}
                         form={form}
                     />
-
-                    {/* Category Selection */}
-                    <CategoryCard form={form} />
 
                     {/* Discovery & SEO Settings */}
                     <DiscoverySettingsCard form={form} />

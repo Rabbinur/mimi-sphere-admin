@@ -1,5 +1,4 @@
-"use client"
-
+import { useAllCategoryQuery } from "@/components/Redux/RTK/categoryApi"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -17,21 +16,43 @@ export default function InventoryCard({
     form: UseFormReturn<ProductFormValues>
     hasVariants?: boolean
 }) {
+    const { data: categories } = useAllCategoryQuery(false)
     const { fields, append, remove } = useFieldArray({
         control: form.control,
         name: "product_attributes",
     })
 
+    const getCategoryCode = (name?: string) => {
+        if (!name) return "PRD";
+        const words = name.replace(/[^a-zA-Z0-9 ]/g, "").trim().split(/\s+/).filter(Boolean);
+        if (words.length === 0) return "PRD";
+        if (words.length === 1) return words[0].substring(0, 4).toUpperCase();
+        if (words.length === 2) {
+            return `${words[0].charAt(0).toUpperCase()}${words[1].substring(0, 3).toUpperCase()}`;
+        }
+        return words.map(w => w.charAt(0).toUpperCase()).join("").substring(0, 4);
+    };
+
+    const getProductCode = (title?: string) => {
+        if (!title) return "ITM";
+        const words = title.replace(/[^a-zA-Z0-9 ]/g, "").trim().split(/\s+/).filter(Boolean);
+        if (words.length === 0) return "ITM";
+        if (words.length === 1) return words[0].substring(0, 4).toUpperCase();
+        if (words.length === 2) {
+            return `${words[0].charAt(0).toUpperCase()}${words[1].substring(0, 3).toUpperCase()}`;
+        }
+        return words.map(w => w.charAt(0).toUpperCase()).join("").substring(0, 4);
+    };
+
     const generateSKU = () => {
         const title = form.getValues("product_title") || "PRD";
-        const cleanTitle = title
-            .replace(/[^a-zA-Z0-9 ]/g, "")
-            .split(" ")
-            .filter((w) => w.length > 0)
-            .map((w) => w.substring(0, 3).toUpperCase())
-            .join("");
+        const selectedCatIds = form.getValues("product_categories") || [];
+        const matchedCategory = categories?.find((c: any) => selectedCatIds.includes(c._id));
+
+        const catCode = getCategoryCode(matchedCategory?.name);
+        const prodCode = getProductCode(title);
         const rand = Math.floor(1000 + Math.random() * 9000);
-        const generatedSKU = `SKU-${cleanTitle.substring(0, 8)}-${rand}`;
+        const generatedSKU = `${catCode}-${prodCode}-${rand}`;
         form.setValue("sku", generatedSKU, { shouldValidate: true });
     };
 
