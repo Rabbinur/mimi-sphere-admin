@@ -12,8 +12,10 @@ import { useFieldArray } from "react-hook-form"
 
 export default function InventoryCard({
     form,
+    hasVariants = false,
 }: {
     form: UseFormReturn<ProductFormValues>
+    hasVariants?: boolean
 }) {
     const { fields, append, remove } = useFieldArray({
         control: form.control,
@@ -45,7 +47,16 @@ export default function InventoryCard({
                 Inventory & Barcode
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {hasVariants ? (
+                <div className="p-3 bg-blue-50/80 border border-blue-200/80 rounded-lg text-xs text-blue-900 flex items-center gap-2.5">
+                    <Sparkles className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                    <span>
+                        <strong>Variants Active:</strong> Stock, SKU, and Barcodes are managed per variant in the <strong>Variants Matrix</strong> below.
+                    </span>
+                </div>
+            ) : (
+                <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* SKU Field */}
                 <FormField
                     control={form.control}
@@ -161,6 +172,8 @@ export default function InventoryCard({
                     </FormItem>
                 )}
             />
+                </>
+            )}
 
             {/* Custom Attributes */}
             <div className="space-y-3 pt-3 border-t border-slate-100">

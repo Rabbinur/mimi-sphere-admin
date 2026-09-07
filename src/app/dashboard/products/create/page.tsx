@@ -254,6 +254,11 @@ export default function ProductCreatePage() {
         }
 
         if (variants.length > 0) {
+            const totalVariantStock = variants.reduce(
+                (sum, v) => sum + Number(v.variant_quantity || 0),
+                0
+            );
+            payload.quantity = totalVariantStock;
             payload.product_variants = variants.map((variant) => ({
                 ...variant,
                 variant_price: Number(variant.variant_price),
@@ -329,7 +334,7 @@ export default function ProductCreatePage() {
                     <PricingCard form={form} />
 
                     {/* Inventory & Barcode */}
-                    <InventoryCard form={form} />
+                    <InventoryCard form={form} hasVariants={variants.length > 0} />
 
                     {/* Variants Matrix */}
                     <OptionsVariantsCard

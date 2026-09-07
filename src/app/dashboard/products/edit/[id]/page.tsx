@@ -256,8 +256,13 @@ export default function EditProductPage() {
     }
 
     async function onSubmit(data: ProductFormValues) {
+        const totalVariantStock = variants.length > 0
+            ? variants.reduce((sum, v) => sum + Number(v.variant_quantity || 0), 0)
+            : Number(data.quantity || 0);
+
         const payload = {
             ...data,
+            quantity: totalVariantStock,
             product_options: options.map(o => ({ option_name: o.name, option_values: o.values })),
             product_variants: variants.map(v => ({
                 ...v,
@@ -330,7 +335,7 @@ export default function EditProductPage() {
                     <PricingCard form={form} />
 
                     {/* Inventory & Barcode */}
-                    <InventoryCard form={form} />
+                    <InventoryCard form={form} hasVariants={variants.length > 0} />
 
                     {/* Variants Matrix */}
                     <OptionsVariantsCard
