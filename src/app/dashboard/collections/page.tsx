@@ -1,6 +1,6 @@
 "use client";
 
-import { useAllCollectionsQuery, useDeleteCollectionMutation } from "@/components/Redux/RTK/collectionApi";
+import { useAllCollectionsQuery, useDeleteCollectionMutation, useUpdateCollectionMutation } from "@/components/Redux/RTK/collectionApi";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,6 +36,8 @@ export default function CollectionsManagementPage() {
     });
 
     const [deleteCollection, { isLoading: deleting }] = useDeleteCollectionMutation();
+    const [updateCollection] = useUpdateCollectionMutation();
+    const [togglingId, setTogglingId] = useState<string | null>(null);
 
     useEffect(() => {
         setMounted(true);
@@ -49,6 +51,23 @@ export default function CollectionsManagementPage() {
 
     const openEdit = (collection: any) => {
         router.push(`/dashboard/collections/edit/${collection._id}`);
+    };
+
+    const handleToggleActive = async (col: any) => {
+        setTogglingId(col._id);
+        try {
+            const res = await updateCollection({ id: col._id, data: { isActive: !col.isActive } }).unwrap();
+            if (res.success || res.statusCode === 200) {
+                toast.success(`Collection "${col.name}" ${!col.isActive ? 'enabled' : 'disabled'}`);
+                refetch();
+            } else {
+                toast.error("Failed to update collection status");
+            }
+        } catch {
+            toast.error("Failed to update collection status");
+        } finally {
+            setTogglingId(null);
+        }
     };
 
     const handleDelete = async (id: string) => {
@@ -130,11 +149,20 @@ export default function CollectionsManagementPage() {
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell>
-                                                    {col.isActive ? (
-                                                        <Badge className="bg-green-500">Active</Badge>
-                                                    ) : (
-                                                        <Badge variant="destructive">Inactive</Badge>
-                                                    )}
+                                                    <button
+                                                        onClick={() => handleToggleActive(col)}
+                                                        disabled={togglingId === col._id}
+                                                        title={col.isActive ? "Click to disable" : "Click to enable"}
+                                                        className="cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    >
+                                                        {togglingId === col._id ? (
+                                                            <Badge variant="outline" className="animate-pulse">Updating...</Badge>
+                                                        ) : col.isActive ? (
+                                                            <Badge className="bg-green-500 hover:bg-red-500 transition-colors">● Active</Badge>
+                                                        ) : (
+                                                            <Badge variant="destructive" className="hover:bg-green-500 transition-colors">● Inactive</Badge>
+                                                        )}
+                                                    </button>
                                                 </TableCell>
                                                 <TableCell>{col.displayOrder}</TableCell>
                                                 <TableCell className="text-xs text-gray-500">{formatDate(col.createdAt)}</TableCell>

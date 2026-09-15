@@ -111,15 +111,22 @@ export default function CollectionForm({ mode, collectionId }: CollectionFormPro
     const [importJsonText, setImportJsonText] = useState("");
 
     // Fetch lists for filters / selection
-    const { data: productsData } = useAllProductsQuery(
-        { searchTerm: productSearch, limit: 8 }
+    const { data: productsData, isFetching: productsFetching } = useAllProductsQuery(
+        { searchTerm: productSearch, limit: 20 }
     );
     const { data: brandsRes } = useAllBrandsQuery({ limit: 100 });
-    const { data: categoriesRes } = useAllCategoryQuery(undefined);
+    const { data: categoriesRes } = useAllCategoryQuery(false);
 
     const allBrands = brandsRes?.data?.brands || [];
-    const allCategories = categoriesRes?.data || [];
-    const searchedProducts = productsData?.data?.products || [];
+    // useAllCategoryQuery returns the array directly (no .data wrapper)
+    const allCategories: any[] = Array.isArray(categoriesRes)
+        ? categoriesRes
+        : (categoriesRes?.data || []);
+    // Products API returns: { data: Product[], pagination: {...} }
+    // data is a direct array (not data.products)
+    const searchedProducts: any[] = Array.isArray(productsData?.data)
+        ? productsData.data
+        : (productsData?.data?.products ?? []);
 
     // Load initial values
     useEffect(() => {
@@ -662,29 +669,40 @@ export default function CollectionForm({ mode, collectionId }: CollectionFormPro
                                         className="mt-3"
                                     />
 
-                                    <div className="mt-3 border rounded-lg max-h-[250px] overflow-y-auto divide-y bg-white">
-                                        {searchedProducts.length > 0 ? (
+                                    <div className="mt-3 border rounded-lg max-h-[300px] overflow-y-auto divide-y bg-white">
+                                        {productsFetching ? (
+                                            <div className="p-4 text-center text-sm text-gray-400 flex items-center justify-center gap-2">
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                Searching...
+                                            </div>
+                                        ) : searchedProducts.length > 0 ? (
                                             searchedProducts.map((prod: any) => {
                                                 const isSelected = !!selectedProducts.find((p) => p._id === prod._id);
                                                 return (
                                                     <div key={prod._id} className="flex items-center justify-between p-3 hover:bg-slate-50 text-sm">
                                                         <div className="flex items-center gap-3 truncate">
-                                                            {prod.thumbnail && <img src={prod.thumbnail} className="w-10 h-10 object-contain border rounded bg-white" />}
-                                                            <span className="truncate font-medium">{prod.product_title}</span>
+                                                            {prod.thumbnail && <img src={prod.thumbnail} className="w-10 h-10 object-contain border rounded bg-white flex-shrink-0" />}
+                                                            <div className="min-w-0">
+                                                                <p className="truncate font-medium text-slate-800">{prod.product_title}</p>
+                                                                <p className="text-xs text-slate-400">৳{prod.product_price}</p>
+                                                            </div>
                                                         </div>
                                                         <Button
                                                             type="button"
                                                             size="sm"
                                                             variant={isSelected ? "outline" : "default"}
                                                             onClick={() => isSelected ? handleRemoveProduct(prod._id) : handleAddProduct(prod)}
+                                                            className="flex-shrink-0 ml-2"
                                                         >
-                                                            {isSelected ? "Selected" : "Add"}
+                                                            {isSelected ? <><Check className="h-3 w-3 mr-1" />Added</> : <><Plus className="h-3 w-3 mr-1" />Add</>}
                                                         </Button>
                                                     </div>
                                                 );
                                             })
                                         ) : (
-                                            <div className="p-4 text-center text-sm text-gray-400">No matching products found.</div>
+                                            <div className="p-6 text-center text-sm text-gray-400">
+                                                {productSearch ? `No products found for "${productSearch}"` : "No products available."}
+                                            </div>
                                         )}
                                     </div>
                                 </div>
@@ -717,25 +735,32 @@ export default function CollectionForm({ mode, collectionId }: CollectionFormPro
 
                                 {/* Category Filters */}
                                 <div className="space-y-3">
-                                    <Label className="text-base font-semibold">Filter by Categories</Label>
+                                    <Label className="text-base font-semibold">
+                                        Filter by Categories
+                                        <span className="ml-2 text-xs font-normal text-slate-400">({allCategories.length} available)</span>
+                                    </Label>
                                     <div className="flex flex-wrap gap-2 max-h-[150px] overflow-y-auto border p-3 rounded-lg bg-slate-50">
-                                        {allCategories.map((cat: any) => {
-                                            const isChecked = filterCategories.includes(cat._id);
-                                            return (
-                                                <button
-                                                    type="button"
-                                                    key={cat._id}
-                                                    onClick={() => toggleCategoryFilter(cat._id)}
-                                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border font-medium transition ${isChecked
-                                                        ? "bg-primary text-white border-primary"
-                                                        : "bg-white text-gray-600 border-slate-200 hover:bg-slate-50"
-                                                        }`}
-                                                >
-                                                    {isChecked && <Check className="h-3.5 w-3.5" />}
-                                                    {cat.name}
-                                                </button>
-                                            );
-                                        })}
+                                        {allCategories.length === 0 ? (
+                                            <span className="text-xs text-gray-400 p-1">No categories found.</span>
+                                        ) : (
+                                            allCategories.map((cat: any) => {
+                                                const isChecked = filterCategories.includes(cat._id);
+                                                return (
+                                                    <button
+                                                        type="button"
+                                                        key={cat._id}
+                                                        onClick={() => toggleCategoryFilter(cat._id)}
+                                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border font-medium transition ${isChecked
+                                                            ? "bg-primary text-white border-primary"
+                                                            : "bg-white text-gray-600 border-slate-200 hover:bg-slate-50"
+                                                            }`}
+                                                    >
+                                                        {isChecked && <Check className="h-3.5 w-3.5" />}
+                                                        {cat.name}
+                                                    </button>
+                                                );
+                                            })
+                                        )}
                                     </div>
                                 </div>
 

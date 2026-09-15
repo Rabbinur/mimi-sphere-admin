@@ -4,6 +4,7 @@ import { ArrowLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
+import { useRouter } from "next/navigation"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -23,6 +24,7 @@ import { type ProductFormValues, productResolver } from "@/lib/validators/produc
 import { toast } from "sonner"
 
 export default function ProductCreatePage() {
+    const router = useRouter()
     const { data: categories } = useAllCategoryQuery(false)
     const [createProduct, { isLoading }] = useCreateProductMutation()
     const [loading, setLoading] = useState(false)
@@ -318,7 +320,16 @@ export default function ProductCreatePage() {
             const response = await createProduct({ data: payload }).unwrap()
 
             if (response.success) {
-                toast.success("Product added successfully")
+                toast.success("Product created successfully! Redirecting...")
+
+                // Reset form
+                form.reset()
+                setOptions([])
+                setVariants([])
+                setOptionValue("")
+
+                // Redirect to all products
+                router.push("/dashboard/products")
             } else {
                 toast.error("Error adding product")
             }
