@@ -2,7 +2,7 @@
 
 import { useAllCategoryQuery } from "@/components/Redux/RTK/categoryApi";
 import { useAdminProductsQuery, useDeleteProductMutation, useImportCjProductsMutation, useUpdateProductMutation } from "@/components/Redux/RTK/productApi";
-import { Barcode, ChevronLeft, ChevronRight, Clock, Edit3, Filter, Flame, Loader2, Search, Star, Trash2, X, Zap } from "lucide-react";
+import { Barcode, ChevronLeft, ChevronRight, Clock, Edit3, Filter, Flame, Loader2, Search, Sparkles, Star, Trash2, X, Zap } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -27,6 +27,7 @@ interface TProduct {
     product_status?: 'draft' | 'active';
     is_featured?: boolean;
     is_trendy?: boolean;
+    is_new_arrival?: boolean;
     is_limited_time_offer?: boolean;
     is_pre_order?: boolean;
     pre_order_message?: string;
@@ -123,6 +124,15 @@ const AdminProductsPage = () => {
             toast.success(product.is_trendy ? "Removed from Trendy" : "Marked as Trendy");
         } catch (err) {
             toast.error("Failed to update Trendy status");
+        }
+    };
+
+    const handleToggleNewArrival = async (product: TProduct) => {
+        try {
+            await updateProduct({ id: product._id, data: { is_new_arrival: !product.is_new_arrival } }).unwrap();
+            toast.success(product.is_new_arrival ? "Removed from New Arrival" : "Marked as New Arrival");
+        } catch (err) {
+            toast.error("Failed to update New Arrival status");
         }
     };
 
@@ -387,6 +397,13 @@ const AdminProductsPage = () => {
                                             className={`p-1.5 rounded-full transition-colors ${product.is_trendy ? 'bg-orange-100 text-orange-600' : 'bg-gray-100 text-gray-400 hover:text-orange-600'}`}
                                         >
                                             <Flame className={`h-4 w-4 ${product.is_trendy ? 'fill-current' : ''}`} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleToggleNewArrival(product)}
+                                            title={product.is_new_arrival ? "New Arrival" : "Mark as New Arrival"}
+                                            className={`p-1.5 rounded-full transition-colors ${product.is_new_arrival ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-400 hover:text-amber-600'}`}
+                                        >
+                                            <Sparkles className={`h-4 w-4 ${product.is_new_arrival ? 'fill-current' : ''}`} />
                                         </button>
                                         <button
                                             onClick={() => handleToggleLimitedOffer(product)}

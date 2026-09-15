@@ -60,6 +60,7 @@ export default function ProductCreatePage() {
             product_status: "active",
             is_featured: false,
             is_trendy: false,
+            is_new_arrival: false,
             is_limited_time_offer: false,
             is_pre_order: false,
             pre_order_message: "",

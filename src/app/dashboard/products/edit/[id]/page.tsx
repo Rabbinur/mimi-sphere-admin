@@ -104,6 +104,7 @@ export default function EditProductPage() {
                 product_status: product.product_status || "active",
                 is_featured: !!product.is_featured,
                 is_trendy: !!product.is_trendy,
+                is_new_arrival: !!product.is_new_arrival,
                 is_limited_time_offer: !!product.is_limited_time_offer,
                 is_pre_order: !!product.is_pre_order,
                 pre_order_message: product.pre_order_message || "",

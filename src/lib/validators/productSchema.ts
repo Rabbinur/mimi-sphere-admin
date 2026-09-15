@@ -52,6 +52,7 @@ export const productSchema = z.object({
   product_status: z.enum(["draft", "active"]).optional(),
   is_featured: z.boolean().optional(),
   is_trendy: z.boolean().optional(),
+  is_new_arrival: z.boolean().optional(),
   is_limited_time_offer: z.boolean().optional(),
   is_free_delivery: z.boolean().optional(),
   is_pre_order: z.boolean().optional(),

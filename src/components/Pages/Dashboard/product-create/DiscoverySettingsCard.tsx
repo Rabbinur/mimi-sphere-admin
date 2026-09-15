@@ -215,6 +215,26 @@ export default function DiscoverySettingsCard({
 
                 <FormField
                     control={form.control}
+                    name="is_new_arrival"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                                <Checkbox
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                                <FormLabel className="text-xs font-medium cursor-pointer flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-bold">
+                                    <span>✨ New Arrival</span>
+                                </FormLabel>
+                            </div>
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
                     name="is_limited_time_offer"
                     render={({ field }) => (
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0">

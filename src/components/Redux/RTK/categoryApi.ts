@@ -3,8 +3,8 @@ import { baseApi } from "../baseApi";
 const categoryApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     allCategory: builder.query({
-      query: () => ({
-        url: `/categories?sub_categories=false`,
+      query: (sub_categories = false) => ({
+        url: `/categories?sub_categories=${Boolean(sub_categories)}`,
         method: "GET",
       }),
     }),

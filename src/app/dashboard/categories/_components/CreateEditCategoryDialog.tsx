@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -12,6 +10,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MediaFile, MediaLibrary } from "@/components/ui/media-manager";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import React, { useEffect, useState } from "react";
 
@@ -37,32 +42,35 @@ type Mode = "create" | "edit";
 
 interface CreateEditCategoryDialogProps {
     mode?: Mode; // default create
-    // If `triggerLabel` provided, dialog renders a trigger button for create mode.
     triggerLabel?: string;
-    // For edit mode pass the category object and control open state from parent:
+    triggerVariant?: "default" | "outline" | "secondary" | "ghost";
+    triggerSize?: "default" | "sm" | "lg" | "icon";
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
     categoryToEdit?: TCategory | null;
-    // callback when operation succeeded (parent can refetch)
+    defaultParentId?: string | null;
     onSuccess?: () => void;
 }
 
 export default function CreateEditCategoryDialog({
     mode = "create",
     triggerLabel,
+    triggerVariant = "default",
+    triggerSize = "default",
     open,
     onOpenChange,
     categoryToEdit = null,
+    defaultParentId = null,
     onSuccess,
 }: CreateEditCategoryDialogProps) {
-    const { data: topCategories } = useAllCategoryQuery(true);
+    const { data: topCategories = [] } = useAllCategoryQuery(false);
     const [createCategory, { isLoading: creating }] = useCreateCategoryMutation();
     const [updateCategory, { isLoading: updating }] = useUpdateCategoryMutation();
 
     // local form state
     const [name, setName] = useState("");
     const [description, setDescription] = useState<string | undefined>(undefined);
-    const [parentId, setParentId] = useState<string | null>(null);
+    const [parentId, setParentId] = useState<string | null>(defaultParentId);
     const [selectedImage, setSelectedImage] = useState<MediaFile | null>(null);
     const [internalOpen, setInternalOpen] = useState(false);
 
@@ -96,10 +104,10 @@ export default function CreateEditCategoryDialog({
             // reset on open
             setName("");
             setDescription(undefined);
-            setParentId(null);
+            setParentId(defaultParentId || null);
             setSelectedImage(null);
         }
-    }, [mode, categoryToEdit, internalOpen]);
+    }, [mode, categoryToEdit, internalOpen, defaultParentId]);
 
     const closeDialog = () => {
         if (onOpenChange) onOpenChange(false);
@@ -123,7 +131,7 @@ export default function CreateEditCategoryDialog({
         const payload: any = {
             name: name.trim(),
             description: description?.trim() || undefined,
-            parent_category_id: parentId || undefined,
+            parent_category_id: parentId && parentId !== "none" ? parentId : null,
             imageUrl: selectedImage?.url || undefined,
         };
 
@@ -182,10 +190,21 @@ export default function CreateEditCategoryDialog({
             </div>
         ) : null;
 
+    // Filter potential parents (exclude the current category being edited)
+    const eligibleParents = topCategories.filter(
+        (c: TCategory) => !c.parent_category_id && (!categoryToEdit || c._id !== categoryToEdit._id)
+    );
+
     // Provide a trigger for create mode if triggerLabel provided
     const trigger = triggerLabel ? (
         <DialogTrigger asChild>
-            <Button onClick={() => setInternalOpen(true)}>{triggerLabel}</Button>
+            <Button
+                variant={triggerVariant}
+                size={triggerSize}
+                onClick={() => setInternalOpen(true)}
+            >
+                {triggerLabel}
+            </Button>
         </DialogTrigger>
     ) : null;
 
@@ -197,37 +216,75 @@ export default function CreateEditCategoryDialog({
             {trigger}
             <DialogContent className="sm:max-w-[520px] bg-white">
                 <DialogHeader>
-                    <DialogTitle>{mode === "create" ? "Create Category" : `Edit Category: ${categoryToEdit?.name || ""}`}</DialogTitle>
+                    <DialogTitle>
+                        {mode === "create"
+                            ? defaultParentId
+                                ? "Create Subcategory"
+                                : "Create Category"
+                            : `Edit Category: ${categoryToEdit?.name || ""}`}
+                    </DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4 mt-2">
                     <div>
-                        <Label htmlFor="cat-name">Name <span className="text-red-500">*</span></Label>
-                        <Input id="cat-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Headphones" required />
+                        <Label htmlFor="cat-name">
+                            Name <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                            id="cat-name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder={parentId && parentId !== "none" ? "e.g. STEM Toys" : "e.g. Toys & Games"}
+                            required
+                        />
                     </div>
 
                     <div>
                         <Label htmlFor="cat-desc">Description</Label>
-                        <Textarea id="cat-desc" value={description || ""} onChange={(e) => setDescription(e.target.value)} placeholder="Optional description" />
+                        <Textarea
+                            id="cat-desc"
+                            value={description || ""}
+                            onChange={(e) => setDescription(e.target.value)}
+                            placeholder="Optional description"
+                        />
                     </div>
 
-                    {/* <div>
-                        <Label htmlFor="cat-parent">Parent Category</Label>
-                        <Select value={parentId || ""} onValueChange={(val) => setParentId(val === "" ? null : val)}>
-                            <SelectTrigger id="cat-parent">
-                                <SelectValue placeholder="None (Primary Category)" />
+                    {/* 🌟 Parent Category Selector to create subcategories */}
+                    <div>
+                        <Label htmlFor="cat-parent">Parent Category (Optional)</Label>
+                        <Select
+                            value={parentId || "none"}
+                            onValueChange={(val) => setParentId(val === "none" ? null : val)}
+                        >
+                            <SelectTrigger id="cat-parent" className="mt-1 bg-white">
+                                <SelectValue placeholder="None (Create as Main Parent Category)" />
                             </SelectTrigger>
-                            <SelectContent>
-                                {topCategories?.map((c: TCategory) => (
-                                    <SelectItem key={c._id} value={c._id}>{c.name}</SelectItem>
+                            <SelectContent className="bg-white">
+                                <SelectItem value="none">
+                                    📁 None (Create as Main Primary Category)
+                                </SelectItem>
+                                {eligibleParents?.map((c: TCategory) => (
+                                    <SelectItem key={c._id} value={c._id}>
+                                        ↳ Subcategory under: {c.name}
+                                    </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
-                    </div> */}
+                        <p className="text-[11px] text-muted-foreground mt-1">
+                            Select a parent category if you want to make this a Subcategory.
+                        </p>
+                    </div>
 
-                    <div className=" flex flex-col gap-2">
+                    <div className="flex flex-col gap-2">
                         <Label>Thumbnail / Image</Label>
-                        <div> <MediaLibrary onSelect={handleSelectImage} multiple={false} maxFiles={1} title="category-thumbnail" /></div>
+                        <div>
+                            <MediaLibrary
+                                onSelect={handleSelectImage}
+                                multiple={false}
+                                maxFiles={1}
+                                title="category-thumbnail"
+                            />
+                        </div>
                         <ImagePreview />
                     </div>
 

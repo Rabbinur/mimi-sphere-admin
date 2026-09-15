@@ -61,6 +61,7 @@ export interface TProduct {
   product_status?: "draft" | "active";
   is_featured?: boolean;
   is_trendy?: boolean;
+  is_new_arrival?: boolean;
   is_limited_time_offer?: boolean;
   is_free_delivery?: boolean;
   product_attributes?: {
