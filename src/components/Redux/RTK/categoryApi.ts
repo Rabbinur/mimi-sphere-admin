@@ -7,6 +7,7 @@ const categoryApi = baseApi.injectEndpoints({
         url: `/categories?sub_categories=${Boolean(sub_categories)}`,
         method: "GET",
       }),
+      providesTags: ["category"],
     }),
 
     singleCategory: builder.query({
@@ -14,6 +15,7 @@ const categoryApi = baseApi.injectEndpoints({
         url: `/categories/${id}`,
         method: "GET",
       }),
+      providesTags: ["category"],
     }),
 
     createCategory: builder.mutation({
@@ -22,6 +24,7 @@ const categoryApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
+      invalidatesTags: ["category"],
     }),
 
     updateCategory: builder.mutation({
@@ -30,6 +33,7 @@ const categoryApi = baseApi.injectEndpoints({
         method: "PUT",
         body: data,
       }),
+      invalidatesTags: ["category"],
     }),
 
     deleteCategory: builder.mutation({
@@ -37,6 +41,7 @@ const categoryApi = baseApi.injectEndpoints({
         url: `/categories/${id}`,
         method: "DELETE",
       }),
+      invalidatesTags: ["category"],
     }),
     reorderCategory: builder.mutation({
       query: (categoryOrders) => ({
@@ -44,6 +49,7 @@ const categoryApi = baseApi.injectEndpoints({
         method: "PUT",
         body: { categoryOrders },
       }),
+      invalidatesTags: ["category"],
     }),
   }),
 });
