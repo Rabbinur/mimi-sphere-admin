@@ -81,8 +81,8 @@ export default function CategoryCard({ form }: { form: UseFormReturn<ProductForm
                 
                 // Merge unique subcategories by _id
                 const subMapById = new Map<string, TCategory>()
-                nestedSubs.forEach(s => subMapById.set(s._id, s))
-                mappedSubs.forEach(s => subMapById.set(s._id, s))
+                nestedSubs.forEach((s: TCategory) => subMapById.set(s._id, s))
+                mappedSubs.forEach((s: TCategory) => subMapById.set(s._id, s))
 
                 rootNodes.push({
                     category: cat,
