@@ -208,12 +208,32 @@ export interface THeroFeature {
   link: string;
 }
 
+export interface TBentoItem {
+  badge?: string;
+  badgeColor?: string;
+  title: string;
+  subtitle?: string;
+  image: string;
+  link: string;
+  categorySlug?: string;
+  colSpan?: number;
+  rowSpan?: number;
+}
+
+export interface TBentoGrid {
+  isEnabled: boolean;
+  tag?: string;
+  title?: string;
+  items: TBentoItem[];
+}
+
 export interface TCMS {
   company: TCompany;
   social: TSocial;
   heroSliderDesktop: THeroSlide[];
   heroSliderMobile: THeroSlide[];
   heroFeatures: THeroFeature[];
+  bentoGrid?: TBentoGrid;
 }
 
 export interface TDashboardOverview {
