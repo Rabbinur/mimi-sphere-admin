@@ -21,7 +21,16 @@ export default function ReorderCategoriesDialog({ categories, onSuccess }: { cat
 
   useEffect(() => {
     if (categories) {
-      const sorted = [...categories].sort((a, b) => (a.order || 0) - (b.order || 0));
+      const getCategoryOrder = (c: any) =>
+        typeof c.order === "number" && !isNaN(c.order) ? c.order : Number.MAX_SAFE_INTEGER;
+
+      const sorted = [...categories].sort((a, b) => {
+        const diff = getCategoryOrder(a) - getCategoryOrder(b);
+        if (diff !== 0) return diff;
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return timeA - timeB;
+      });
       setItems(sorted);
     }
   }, [categories, isOpen]);

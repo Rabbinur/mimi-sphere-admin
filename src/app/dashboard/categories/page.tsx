@@ -8,6 +8,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import {
     Table,
     TableBody,
@@ -22,9 +23,10 @@ import { useEffect, useMemo, useState } from "react";
 import {
     useAllCategoryQuery,
     useDeleteCategoryMutation,
+    useUpdateCategoryMutation,
 } from "@/components/Redux/RTK/categoryApi";
 
-import { FolderTree, Plus, Sparkles, Tag } from "lucide-react";
+import { FolderTree, Tag } from "lucide-react";
 import { toast } from "sonner";
 import CreateEditCategoryDialog from "./_components/CreateEditCategoryDialog";
 import ReorderCategoriesDialog from "./_components/ReorderCategoriesDialog";
@@ -35,6 +37,7 @@ export interface TCategory {
     description?: string;
     parent_category_id: null | string;
     imageUrl?: string;
+    bannerImage?: string;
     isActive: boolean;
     order?: number;
     createdAt: Date | string;
@@ -45,6 +48,8 @@ export default function CategoryManagementPage() {
     const [mounted, setMounted] = useState(false);
     const { data: categories, isLoading, isError, refetch } = useAllCategoryQuery(true);
     const [deleteCategory, { isLoading: deleting }] = useDeleteCategoryMutation();
+    const [updateCategory] = useUpdateCategoryMutation();
+    const [togglingId, setTogglingId] = useState<string | null>(null);
 
     const [editingCategory, setEditingCategory] = useState<TCategory | null>(null);
     const [editOpen, setEditOpen] = useState(false);
@@ -59,11 +64,28 @@ export default function CategoryManagementPage() {
             return { displayList: [], totalMain: 0, totalSub: 0 };
         }
 
+        const getCategoryOrder = (c: TCategory) =>
+            typeof c.order === "number" && !isNaN(c.order) && c.order > 0
+                ? c.order
+                : Number.MAX_SAFE_INTEGER;
+
+        const sortList = (list: TCategory[]) => {
+            return [...list].sort((a, b) => {
+                const diff = getCategoryOrder(a) - getCategoryOrder(b);
+                if (diff !== 0) return diff;
+                const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                return timeA - timeB;
+            });
+        };
+
+        const sortedCategories = sortList(categories);
+
         const list: (TCategory & { isSub: boolean; parentName?: string; subCount?: number })[] = [];
         let mainCount = 0;
         let subCount = 0;
 
-        categories.forEach((cat: TCategory) => {
+        sortedCategories.forEach((cat: TCategory) => {
             const hasSubs = Array.isArray(cat.sub_categories) && cat.sub_categories.length > 0;
             if (!cat.parent_category_id) {
                 mainCount++;
@@ -79,7 +101,8 @@ export default function CategoryManagementPage() {
 
             // If it has nested subcategories, push them right below the parent
             if (hasSubs) {
-                cat.sub_categories!.forEach((sub: TCategory) => {
+                const sortedSubs = sortList(cat.sub_categories!);
+                sortedSubs.forEach((sub: TCategory) => {
                     subCount++;
                     list.push({
                         ...sub,
@@ -98,6 +121,28 @@ export default function CategoryManagementPage() {
     const openEdit = (cat: TCategory) => {
         setEditingCategory(cat);
         setEditOpen(true);
+    };
+
+    const handleToggleActive = async (cat: TCategory) => {
+        const nextStatus = cat.isActive === false ? true : false;
+        setTogglingId(cat._id);
+        try {
+            const res = await updateCategory({
+                id: cat._id,
+                data: { isActive: nextStatus },
+            }).unwrap();
+
+            if (res.statusCode === 200 || res.success) {
+                toast.success(`Category "${cat.name}" is now ${nextStatus ? "Active (Visible)" : "Hidden"}`);
+                refetch();
+            } else {
+                toast.error(res.message || "Failed to update category status");
+            }
+        } catch (error: any) {
+            toast.error(error?.data?.message || "Failed to update visibility");
+        } finally {
+            setTogglingId(null);
+        }
     };
 
     const handleDelete = async (id: string, name: string) => {
@@ -142,7 +187,7 @@ export default function CategoryManagementPage() {
                         Category Management
                     </h1>
                     <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                        Organize main categories and subcategories for the storefront navigation and filters.
+                        Organize main categories and subcategories, banners, display orders, and storefront visibility.
                     </p>
                 </div>
 
@@ -185,11 +230,12 @@ export default function CategoryManagementPage() {
                             <Table>
                                 <TableHeader>
                                     <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
-                                        <TableHead className="w-[300px]">Category Name</TableHead>
+                                        <TableHead className="w-[70px] text-center font-bold">Order</TableHead>
+                                        <TableHead className="w-[280px]">Category Name</TableHead>
                                         <TableHead>Type</TableHead>
-                                        <TableHead>Description</TableHead>
-                                        <TableHead>Image</TableHead>
-                                        <TableHead>Status</TableHead>
+                                        <TableHead>Thumbnail</TableHead>
+                                        <TableHead>Banner</TableHead>
+                                        <TableHead className="text-center">Visibility</TableHead>
                                         <TableHead>Created</TableHead>
                                         <TableHead className="text-right">Actions</TableHead>
                                     </TableRow>
@@ -205,6 +251,12 @@ export default function CategoryManagementPage() {
                                                     key={cat._id} 
                                                     className={isSubcategory ? "bg-amber-50/30 hover:bg-amber-50/60" : "hover:bg-slate-50/60"}
                                                 >
+                                                    <TableCell className="text-center">
+                                                        <span className="inline-flex items-center justify-center font-bold text-xs text-slate-700 bg-slate-100 border border-slate-200/80 rounded-md px-2 py-0.5">
+                                                            {typeof cat.order === "number" && !isNaN(cat.order) && cat.order > 0 ? cat.order : "-"}
+                                                        </span>
+                                                    </TableCell>
+
                                                     <TableCell className="font-medium">
                                                         {isSubcategory ? (
                                                             <div className="flex items-center gap-2 pl-6">
@@ -237,10 +289,6 @@ export default function CategoryManagementPage() {
                                                         )}
                                                     </TableCell>
 
-                                                    <TableCell className="max-w-[200px] truncate text-xs text-slate-500">
-                                                        {cat.description || <span className="italic text-slate-300">None</span>}
-                                                    </TableCell>
-
                                                     <TableCell>
                                                         {cat.imageUrl ? (
                                                             <img
@@ -254,11 +302,32 @@ export default function CategoryManagementPage() {
                                                     </TableCell>
 
                                                     <TableCell>
-                                                        {cat.isActive !== false ? (
-                                                            <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px]">Active</Badge>
+                                                        {cat.bannerImage ? (
+                                                            <div className="w-16 h-9 rounded-md overflow-hidden border border-slate-200 bg-slate-100 shadow-2xs">
+                                                                <img
+                                                                    src={cat.bannerImage}
+                                                                    alt={`${cat.name} Banner`}
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                            </div>
                                                         ) : (
-                                                            <Badge variant="destructive" className="text-[10px]">Inactive</Badge>
+                                                            <span className="inline-block text-[10px] text-slate-400 px-2 py-0.5 rounded bg-slate-100">
+                                                                No Banner
+                                                            </span>
                                                         )}
+                                                    </TableCell>
+
+                                                    <TableCell className="text-center">
+                                                        <div className="inline-flex items-center justify-center gap-2">
+                                                            <Switch
+                                                                checked={cat.isActive !== false}
+                                                                disabled={togglingId === cat._id}
+                                                                onCheckedChange={() => handleToggleActive(cat)}
+                                                            />
+                                                            <span className={`text-[11px] font-semibold w-12 text-left ${cat.isActive !== false ? "text-emerald-600" : "text-slate-400"}`}>
+                                                                {cat.isActive !== false ? "Active" : "Hidden"}
+                                                            </span>
+                                                        </div>
                                                     </TableCell>
 
                                                     <TableCell className="text-xs text-slate-500">
@@ -298,7 +367,7 @@ export default function CategoryManagementPage() {
                                         })
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={7} className="text-center py-8 text-slate-500">
+                                            <TableCell colSpan={8} className="text-center py-8 text-slate-500">
                                                 No categories found.
                                             </TableCell>
                                         </TableRow>
@@ -324,3 +393,4 @@ export default function CategoryManagementPage() {
         </div>
     );
 }
+

@@ -46,8 +46,8 @@ const categoryApi = baseApi.injectEndpoints({
     reorderCategory: builder.mutation({
       query: (categoryOrders) => ({
         url: "/categories/reorder",
-        method: "PUT",
-        body: { categoryOrders },
+        method: "PATCH",
+        body: { categories: categoryOrders, categoryOrders },
       }),
       invalidatesTags: ["category"],
     }),
