@@ -6,6 +6,10 @@ const categoryApi = baseApi.injectEndpoints({
       query: (sub_categories = false) => ({
         url: `/categories?sub_categories=${Boolean(sub_categories)}`,
         method: "GET",
+        headers: {
+          "Cache-Control": "no-cache",
+          "Pragma": "no-cache",
+        },
       }),
       providesTags: ["category"],
     }),
