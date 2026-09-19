@@ -16,7 +16,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { TBentoGrid, TBentoItem } from "@/types";
-import { MoveDown, MoveUp, Plus, Trash2, Save, LayoutGrid, CheckCircle2 } from "lucide-react";
+import { MoveDown, MoveUp, Plus, Trash2, Save, LayoutGrid } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -66,6 +66,28 @@ export default function BentoGridManager() {
             });
         }
     }, [cmsResponse]);
+
+    const toggleBentoVisibility = async (checked: boolean) => {
+        updateBentoGridState({ isEnabled: checked });
+        if (cmsResponse?.data) {
+            try {
+                await updateCms({
+                    ...cmsResponse.data,
+                    bentoGrid: {
+                        ...(cmsResponse.data.bentoGrid || bentoGrid),
+                        isEnabled: checked,
+                    },
+                }).unwrap();
+                toast.success(
+                    checked
+                        ? "Best Collections (Bento) section is now VISIBLE on homepage!"
+                        : "Best Collections (Bento) section is now HIDDEN from homepage!"
+                );
+            } catch {
+                toast.error("Failed to update Bento Grid visibility");
+            }
+        }
+    };
 
     const handleSave = async () => {
         if (!cmsResponse?.data) return;
@@ -121,76 +143,81 @@ export default function BentoGridManager() {
     if (isCmsLoading) {
         return (
             <div className="p-8 text-center text-muted-foreground">
-                Loading Best Collections settings...
+                Loading Collections settings...
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
+            {/* Action Row for Bento Tab: Toggle on Left of Save Changes Button */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <p className="text-xs text-muted-foreground">
+                    Customize the Bento Grid collection cards and toggle the Bento Grid section on/off on the homepage.
+                </p>
+
+                <div className="flex items-center gap-3 self-end sm:self-auto">
+                    {/* Tab-wise Section Visibility Toggle */}
+                    <div className="flex items-center space-x-2.5 bg-slate-50 border border-slate-200 px-3.5 py-1.5 rounded-lg shadow-sm">
+                        <Label htmlFor="bento-tab-toggle" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">
+                            Section:
+                        </Label>
+                        <Switch
+                            id="bento-tab-toggle"
+                            checked={bentoGrid.isEnabled}
+                            onCheckedChange={toggleBentoVisibility}
+                            disabled={isUpdating}
+                        />
+                        <span className={`text-xs font-bold ${bentoGrid.isEnabled ? 'text-green-600' : 'text-red-500'}`}>
+                            {bentoGrid.isEnabled ? "Visible" : "Hidden"}
+                        </span>
+                    </div>
+
+                    <Button onClick={handleSave} disabled={isUpdating} className="gap-1.5">
+                        <Save className="w-4 h-4" />
+                        {isUpdating ? "Saving..." : "Save Changes"}
+                    </Button>
+                </div>
+            </div>
+
+            {/* Best Collections (Bento Grid) Section Card */}
             <Card className="border shadow-sm">
-                <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b">
+                <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b">
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <LayoutGrid className="w-5 h-5 text-primary" />
-                            <CardTitle className="text-xl">Best Collections (Bento Grid)</CardTitle>
+                            <CardTitle className="text-lg">Best Collections (Bento Grid) Configuration</CardTitle>
                         </div>
                         <CardDescription>
-                            Configure the dynamic Bento Grid showcased on the storefront home page.
+                            Configure the 4-card interactive Bento Grid layout shown on the storefront homepage.
                         </CardDescription>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center space-x-2 bg-muted/40 px-3 py-1.5 rounded-lg border">
-                            <Switch
-                                id="bento-toggle-manager"
-                                checked={bentoGrid.isEnabled}
-                                onCheckedChange={(checked) =>
-                                    updateBentoGridState({ isEnabled: checked })
-                                }
-                            />
-                            <Label
-                                htmlFor="bento-toggle-manager"
-                                className="font-semibold text-xs cursor-pointer select-none"
-                            >
-                                {bentoGrid.isEnabled ? (
-                                    <span className="text-green-600 font-bold">● Section Visible</span>
-                                ) : (
-                                    <span className="text-red-500 font-bold">● Section Hidden</span>
-                                )}
-                            </Label>
-                        </div>
-
-                        <Button onClick={handleSave} disabled={isUpdating} className="gap-1.5">
-                            <Save className="w-4 h-4" />
-                            {isUpdating ? "Saving..." : "Save Changes"}
-                        </Button>
                     </div>
                 </CardHeader>
 
-                <CardContent className="space-y-6 pt-6">
+                <CardContent className="space-y-6 pt-4">
                     {/* Section Header Controls */}
-                    <div className="p-5 bg-muted/20 border rounded-xl grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 bg-muted/20 border rounded-xl grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label className="font-semibold text-sm">Section Subtitle / Tag</Label>
+                            <Label className="font-semibold text-xs">Bento Section Subtitle / Tag</Label>
                             <Input
                                 value={bentoGrid.tag || ""}
                                 placeholder="e.g. Handpicked For You"
                                 onChange={(e) => updateBentoGridState({ tag: e.target.value })}
                                 className="bg-white"
                             />
-                            <p className="text-xs text-muted-foreground">
-                                Small uppercase badge displayed above the title (e.g. Handpicked For You)
+                            <p className="text-[11px] text-muted-foreground">
+                                Small uppercase tag displayed above the title (e.g. Handpicked For You)
                             </p>
                         </div>
                         <div className="space-y-2">
-                            <Label className="font-semibold text-sm">Section Headline / Title</Label>
+                            <Label className="font-semibold text-xs">Bento Section Headline / Title</Label>
                             <Input
                                 value={bentoGrid.title || ""}
                                 placeholder="e.g. Signature Collections"
                                 onChange={(e) => updateBentoGridState({ title: e.target.value })}
                                 className="bg-white"
                             />
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-[11px] text-muted-foreground">
                                 Main section headline displayed on storefront (e.g. Signature Collections)
                             </p>
                         </div>
@@ -200,14 +227,14 @@ export default function BentoGridManager() {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2">
                         <div>
                             <h3 className="text-base font-bold text-slate-800">
-                                Collection Cards ({(bentoGrid.items || []).length})
+                                Bento Cards ({(bentoGrid.items || []).length})
                             </h3>
                             <p className="text-xs text-muted-foreground">
-                                Card #1 is the large Hero card. Card #4 is the wide banner card.
+                                Card #1 is the featured Hero card. Card #4 is the wide banner card.
                             </p>
                         </div>
                         <Button type="button" size="sm" onClick={addItem} className="gap-1.5">
-                            <Plus className="w-4 h-4" /> Add Collection Card
+                            <Plus className="w-4 h-4" /> Add Bento Card
                         </Button>
                     </div>
 
@@ -216,7 +243,7 @@ export default function BentoGridManager() {
                         {(bentoGrid.items || []).length === 0 ? (
                             <div className="text-center py-12 border-2 border-dashed rounded-xl bg-muted/10">
                                 <p className="text-sm text-muted-foreground mb-3">
-                                    No collection cards added yet.
+                                    No bento cards added yet.
                                 </p>
                                 <Button type="button" variant="outline" size="sm" onClick={addItem}>
                                     <Plus className="w-4 h-4 mr-1.5" /> Add First Card

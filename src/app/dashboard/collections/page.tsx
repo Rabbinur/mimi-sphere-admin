@@ -1,6 +1,7 @@
 "use client";
 
 import { useAllCollectionsQuery, useDeleteCollectionMutation, useUpdateCollectionMutation } from "@/components/Redux/RTK/collectionApi";
+import { useGetCmsQuery, useUpdateCmsMutation } from "@/components/Redux/RTK/cmsApi";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +11,8 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { FilePagination } from "@/components/ui/file-paggination";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
     Table,
     TableBody,
@@ -41,6 +44,11 @@ export default function CollectionsManagementPage() {
         limit: COLLECTIONS_PER_PAGE,
     });
 
+    const { data: cmsResponse } = useGetCmsQuery();
+    const [updateCms, { isLoading: isUpdatingCms }] = useUpdateCmsMutation();
+
+    const isFeaturedCollectionsEnabled = cmsResponse?.data?.featuredCollections?.isEnabled ?? true;
+
     const [deleteCollection, { isLoading: deleting }] = useDeleteCollectionMutation();
     const [updateCollection] = useUpdateCollectionMutation();
     const [togglingId, setTogglingId] = useState<string | null>(null);
@@ -54,6 +62,29 @@ export default function CollectionsManagementPage() {
     const collections = response?.data?.collections || [];
     const totalCollections = response?.data?.total || 0;
     const totalPages = Math.ceil(totalCollections / COLLECTIONS_PER_PAGE) || 1;
+
+    const handleToggleFeaturedCollections = async (checked: boolean) => {
+        if (!cmsResponse?.data) return;
+        try {
+            await updateCms({
+                ...cmsResponse.data,
+                featuredCollections: {
+                    ...(cmsResponse.data.featuredCollections || {
+                        title: "Featured Collections",
+                        subtitle: "Explore our handpicked collections",
+                    }),
+                    isEnabled: checked,
+                },
+            }).unwrap();
+            toast.success(
+                checked
+                    ? "Featured Collections section is now VISIBLE on homepage!"
+                    : "Featured Collections section is now HIDDEN from homepage!"
+            );
+        } catch {
+            toast.error("Failed to update Featured Collections visibility");
+        }
+    };
 
     const openEdit = (collection: any) => {
         router.push(`/dashboard/collections/edit/${collection._id}`);
@@ -104,6 +135,7 @@ export default function CollectionsManagementPage() {
 
     return (
         <div className="p-4 md:p-8 bg-white min-h-screen space-y-6">
+            {/* Page Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-semibold">Collections Management</h1>
@@ -113,6 +145,7 @@ export default function CollectionsManagementPage() {
                 </div>
             </div>
 
+            {/* Tab Navigation */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-6">
                 <TabsList className="grid w-full sm:w-[460px] grid-cols-2">
                     <TabsTrigger value="all" className="flex items-center gap-2">
@@ -125,11 +158,35 @@ export default function CollectionsManagementPage() {
                     </TabsTrigger>
                 </TabsList>
 
+                {/* Tab 1: All Collections */}
                 <TabsContent value="all" className="space-y-4">
-                    <div className="flex justify-end">
-                        <Button asChild>
-                            <Link href="/dashboard/collections/create">+ Create Collection</Link>
-                        </Button>
+                    {/* Action Row: Toggle Switch on Left of + Create Collection */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <p className="text-xs text-muted-foreground">
+                            Manage individual collections and control whether the Featured Collections section appears on the homepage.
+                        </p>
+
+                        <div className="flex items-center gap-3 self-end sm:self-auto">
+                            {/* Tab-wise Section Visibility Toggle */}
+                            <div className="flex items-center space-x-2.5 bg-slate-50 border border-slate-200 px-3.5 py-1.5 rounded-lg shadow-sm">
+                                <Label htmlFor="featured-tab-toggle" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">
+                                    Section:
+                                </Label>
+                                <Switch
+                                    id="featured-tab-toggle"
+                                    checked={isFeaturedCollectionsEnabled}
+                                    onCheckedChange={handleToggleFeaturedCollections}
+                                    disabled={isUpdatingCms}
+                                />
+                                <span className={`text-xs font-bold ${isFeaturedCollectionsEnabled ? 'text-green-600' : 'text-red-500'}`}>
+                                    {isFeaturedCollectionsEnabled ? "Visible" : "Hidden"}
+                                </span>
+                            </div>
+
+                            <Button asChild>
+                                <Link href="/dashboard/collections/create">+ Create Collection</Link>
+                            </Button>
+                        </div>
                     </div>
 
                     <Card>
@@ -228,6 +285,7 @@ export default function CollectionsManagementPage() {
                     )}
                 </TabsContent>
 
+                {/* Tab 2: Best Collections (Bento) */}
                 <TabsContent value="bento">
                     <BentoGridManager />
                 </TabsContent>
