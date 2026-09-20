@@ -37,6 +37,37 @@ export const posApi = baseApi.injectEndpoints({
       query: () => "/admin/pos/shift-summary",
       providesTags: ["order"],
     }),
+    lookupCustomer: builder.query<any, string>({
+      query: (phone) => `/admin/pos/customer/${encodeURIComponent(phone)}`,
+      providesTags: ["order"],
+    }),
+
+    // ── Membership Management ────────────────────────────────────────
+    getMembersList: builder.query<any, { search?: string; tier?: string; page?: number; per_page?: number } | void>({
+      query: (params) => {
+        const q = new URLSearchParams();
+        if (params) {
+          if (params.search)   q.append("search", params.search);
+          if (params.tier)     q.append("tier", params.tier);
+          if (params.page)     q.append("page", String(params.page));
+          if (params.per_page) q.append("per_page", String(params.per_page));
+        }
+        return `/admin/pos/members?${q.toString()}`;
+      },
+      providesTags: ["order"],
+    }),
+    getCustomerHistory: builder.query<any, string>({
+      query: (phone) => `/admin/pos/customer/${encodeURIComponent(phone)}/history`,
+      providesTags: ["order"],
+    }),
+    getMembershipSettings: builder.query<any, void>({
+      query: () => "/admin/pos/membership-settings",
+      providesTags: ["order"],
+    }),
+    updateMembershipSettings: builder.mutation<any, { silver_threshold: number; silver_discount: number; gold_threshold: number; gold_discount: number }>({
+      query: (data) => ({ url: "/admin/pos/membership-settings", method: "PUT", body: data }),
+      invalidatesTags: ["order"],
+    }),
   }),
 });
 
@@ -45,4 +76,10 @@ export const {
   useGetPosProductsQuery,
   useCreatePosOrderMutation,
   useGetPosShiftSummaryQuery,
+  useLookupCustomerQuery,
+  useLazyLookupCustomerQuery,
+  useGetMembersListQuery,
+  useGetCustomerHistoryQuery,
+  useGetMembershipSettingsQuery,
+  useUpdateMembershipSettingsMutation,
 } = posApi;

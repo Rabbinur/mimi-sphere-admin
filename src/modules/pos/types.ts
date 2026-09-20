@@ -46,6 +46,7 @@ export interface PosReceiptData {
   customer_name?: string;
   customer_phone?: string;
   customer_email?: string;
+  membership_tier?: string;
   items: PosCartItem[];
   subtotal: number;
   discount: number;
@@ -54,4 +55,17 @@ export interface PosReceiptData {
   payment_method: string;
   tendered_amount: number;
   change_amount: number;
+  qr_code?: string;
+}
+
+export interface PosCustomer {
+  _id?: string;
+  name: string;
+  phone: string;
+  email?: string;
+  total_spent: number;
+  total_orders: number;
+  membership_tier: 'Regular' | 'Silver' | 'Gold';
+  discount_percent: number;
+  last_purchase_at?: string;
 }

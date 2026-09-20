@@ -50,6 +50,11 @@ export const dashboardRoutes: DashboardRoute[] = [
     label: "POS Terminal",
   },
   {
+    href: "/dashboard/pos/members",
+    icon: Award,
+    label: "Members & Loyalty",
+  },
+  {
     href: "/dashboard/categories",
     icon: Tags,
     label: "Categories",

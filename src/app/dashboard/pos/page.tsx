@@ -23,6 +23,8 @@ export default function PosTerminalPage() {
     // POS Cart State Management Hook
     const {
         cartItems,
+        customer,
+        selectCustomer,
         addItem,
         updateQuantity,
         removeItem,
@@ -293,7 +295,7 @@ export default function PosTerminalPage() {
                         <div class="meta-row"><span class="meta-label">Receipt No:</span><span class="meta-val">${receiptData.receipt_number}</span></div>
                         <div class="meta-row"><span class="meta-label">Order No:</span><span class="meta-val">${receiptData.order_number}</span></div>
                         <div class="meta-row"><span class="meta-label">Date & Time:</span><span class="meta-val">${receiptData.created_at}</span></div>
-                        <div class="meta-row"><span class="meta-label">Customer:</span><span class="meta-val">${receiptData.customer_name || 'Walk-in Customer'}</span></div>
+                        <div class="meta-row"><span class="meta-label">Customer:</span><span class="meta-val">${receiptData.customer_name || 'Walk-in Customer'} ${receiptData.membership_tier && receiptData.membership_tier !== 'Regular' ? `<span style="font-size: 9.5px; color: #047857; font-weight: 800;">(${receiptData.membership_tier} Member)</span>` : ''}</span></div>
 
                         <div class="dashed"></div>
 
@@ -334,6 +336,12 @@ export default function PosTerminalPage() {
                         <div class="footer">
                             <div style="font-weight: 800; color: #334155;">Thank You For Shopping With Us!</div>
                             <div>Please keep this receipt for exchanges.</div>
+                            ${receiptData.qr_code ? `
+                                <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed #cbd5e1; text-align: center;">
+                                    <img src="${receiptData.qr_code}" style="width: 72px; height: 72px; margin: 0 auto; display: block;" alt="QR Code" />
+                                    <div style="font-size: 8.5px; font-weight: 700; color: #64748b; margin-top: 4px;">Scan to visit: www.mimisphere.com</div>
+                                </div>
+                            ` : ''}
                         </div>
 
                         <div class="actions">
@@ -735,12 +743,14 @@ export default function PosTerminalPage() {
 
     const handleCheckoutSuccess = (data: PosReceiptData) => {
         clearCart();
+        selectCustomer(null);       // reset member for next sale
+        setIsCheckoutOpen(false);   // close checkout modal
         setIsMobileCartOpen(false);
         setReceiptData(data);
         setIsReceiptOpen(true);
         refetchProducts();
         
-        // Immediately open DEFAULT thermal receipt window on sale confirmation!
+        // Immediately open thermal receipt window on sale confirmation
         openThermalReceiptNewTab(data);
     };
 
@@ -780,6 +790,8 @@ export default function PosTerminalPage() {
                 <div className="hidden lg:block h-full shrink-0">
                     <PosCartPanel
                         cartItems={cartItems}
+                        customer={customer}
+                        onSelectCustomer={selectCustomer}
                         onUpdateQuantity={updateQuantity}
                         onRemoveItem={removeItem}
                         onClearCart={clearCart}
@@ -840,6 +852,8 @@ export default function PosTerminalPage() {
                         <div className="flex-1 overflow-hidden">
                             <PosCartPanel
                                 cartItems={cartItems}
+                                customer={customer}
+                                onSelectCustomer={selectCustomer}
                                 onUpdateQuantity={updateQuantity}
                                 onRemoveItem={removeItem}
                                 onClearCart={clearCart}
@@ -887,6 +901,7 @@ export default function PosTerminalPage() {
                 isOpen={isCheckoutOpen}
                 onClose={() => setIsCheckoutOpen(false)}
                 cartItems={cartItems}
+                customer={customer}
                 subtotal={subtotal}
                 globalDiscount={globalDiscount}
                 taxAmount={taxAmount}

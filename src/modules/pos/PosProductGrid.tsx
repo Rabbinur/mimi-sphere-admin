@@ -5,7 +5,6 @@ import { PosProductItem } from "./types";
 import {
   Barcode,
   Camera,
-  Flame,
   Layers,
   Package,
   Plus,
@@ -163,93 +162,94 @@ export function PosProductGrid({
                   <div
                     key={prod.product_id}
                     onClick={() => !isOutOfStock && handleProductCardClick(prod)}
-                    className={`group bg-white rounded-2xl border border-slate-200/90 p-2 flex flex-col justify-between transition-all duration-150 relative select-none ${
+                    className={`group bg-white rounded-2xl border overflow-hidden flex flex-col transition-all duration-150 relative select-none ${
                       isOutOfStock
-                        ? "opacity-50 cursor-not-allowed bg-slate-50"
-                        : "hover:border-blue-500 hover:shadow-md active:scale-98 cursor-pointer"
+                        ? "opacity-50 cursor-not-allowed border-slate-200 bg-slate-50"
+                        : "border-slate-200/90 hover:border-blue-500 hover:shadow-lg active:scale-[0.98] cursor-pointer"
                     }`}
                   >
-                    {/* Top Image & Badges */}
-                    <div className="relative w-full aspect-square rounded-xl bg-slate-50 overflow-hidden mb-1.5 shrink-0 border border-slate-100">
+                    {/* Full-bleed image */}
+                    <div className="relative w-full aspect-square bg-slate-100 shrink-0 overflow-hidden">
                       {img ? (
                         <img
                           src={img}
                           alt={prod.product_name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           loading="lazy"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center font-bold text-slate-300 text-xs uppercase">
-                          {prod.product_name.substring(0, 2)}
+                        <div className="w-full h-full flex flex-col items-center justify-center gap-1">
+                          <Package className="w-6 h-6 text-slate-300" />
+                          <span className="text-[9px] font-bold text-slate-300 uppercase tracking-wide">
+                            {prod.product_name.substring(0, 8)}
+                          </span>
                         </div>
                       )}
 
-                      {/* Top-Left Badge (Orange TOP) */}
-                      <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[8.5px] font-black rounded flex items-center gap-0.5 shadow-xs uppercase">
-                        <Flame className="w-2.5 h-2.5 fill-white" />
-                        TOP
-                      </span>
+                      {/* Variant badge — top left */}
+                      {prod.has_variants && optionsCount > 0 && (
+                        <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-blue-600/90 backdrop-blur-sm text-white text-[8px] font-black rounded-md flex items-center gap-0.5 shadow">
+                          <Zap className="w-2 h-2 fill-white" />
+                          {optionsCount} OPT
+                        </div>
+                      )}
 
-                      {/* Top-Right Badge (Green QTY) */}
-                      <span
-                        className={`absolute top-1 right-1 px-1.5 py-0.5 text-[8.5px] font-black rounded shadow-xs uppercase ${
-                          prod.stock_quantity > 0
-                            ? "bg-teal-700/90 text-white"
-                            : "bg-rose-600/90 text-white"
-                        }`}
-                      >
-                        QTY: {prod.stock_quantity || 0}
-                      </span>
+                      {/* Out of stock overlay */}
+                      {isOutOfStock && (
+                        <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+                          <span className="text-[9px] font-black text-rose-600 bg-white px-2 py-0.5 rounded-full border border-rose-200 shadow-xs">
+                            OUT OF STOCK
+                          </span>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Title & Information */}
-                    <div className="space-y-1 min-w-0 flex-1 flex flex-col justify-between">
-                      <div>
-                        <h4 className="text-[11.5px] font-bold text-slate-900 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors">
-                          {prod.product_name}
-                        </h4>
+                    {/* Info & Action */}
+                    <div className="p-2 flex flex-col gap-1.5 flex-1">
+                      {/* Product name */}
+                      <h4 className="text-[11px] font-bold text-slate-800 line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
+                        {prod.product_name}
+                      </h4>
 
-                        {/* Optional Sub-tag / Category pill */}
-                        {prod.combination_label && (
-                          <div className="mt-1">
-                            <span className="inline-block px-1.5 py-0.5 bg-blue-50 text-blue-600 text-[9px] font-bold rounded">
-                              {prod.combination_label}
-                            </span>
-                          </div>
-                        )}
+                      {/* Variant label or SKU */}
+                      {(prod.combination_label || prod.sku) && (
+                        <span className="text-[8.5px] font-mono text-slate-400 truncate">
+                          {prod.combination_label || `SKU: ${prod.sku}`}
+                        </span>
+                      )}
+
+                      {/* Bottom: Price + stock pill + add button */}
+                      <div className="flex items-center justify-between mt-auto pt-1 border-t border-slate-100">
+                        {/* Left: price */}
+                        <span className="text-[13px] font-black font-mono text-slate-950 leading-none">
+                          ৳{prod.price.toLocaleString("en-US", { minimumFractionDigits: 0 })}
+                        </span>
+
+                        <div className="flex items-center gap-1.5">
+                          {/* Stock pill */}
+                          <span className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8.5px] font-bold ${
+                            prod.stock_quantity > 10
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              : prod.stock_quantity > 0
+                              ? "bg-amber-50 text-amber-700 border border-amber-200"
+                              : "bg-rose-50 text-rose-600 border border-rose-200"
+                          }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${
+                              prod.stock_quantity > 10 ? "bg-emerald-500" : prod.stock_quantity > 0 ? "bg-amber-500" : "bg-rose-500"
+                            }`} />
+                            {prod.stock_quantity > 0 ? prod.stock_quantity : "0"}
+                          </span>
+
+                          {/* Add button */}
+                          <button
+                            type="button"
+                            aria-label="Add to cart"
+                            className="w-6 h-6 rounded-full bg-slate-900 hover:bg-blue-600 text-white flex items-center justify-center transition-all active:scale-90 shrink-0 cursor-pointer shadow-sm"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
-
-                      <div className="space-y-1 pt-1">
-                        {/* Options button if variants exist */}
-                        {prod.has_variants && optionsCount > 0 && (
-                          <div className="w-full py-1 px-1.5 bg-blue-600 text-white text-[9.5px] font-black rounded-lg flex items-center justify-center gap-1 shadow-xs">
-                            <Zap className="w-2.5 h-2.5 fill-white" />
-                            <span>{optionsCount} OPTIONS</span>
-                          </div>
-                        )}
-
-                        {/* SKU pill */}
-                        {prod.sku && (
-                          <div className="text-[8.5px] font-mono font-medium text-slate-400 bg-slate-50 border border-slate-100 rounded px-1 py-0.5 truncate text-center">
-                            SKU: {prod.sku}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Bottom Row: Price & Circular + Button */}
-                    <div className="pt-2 mt-1.5 border-t border-slate-100 flex items-center justify-between gap-1">
-                      <span className="text-xs sm:text-[13px] font-black font-mono text-slate-950 truncate">
-                        ৳{prod.price.toLocaleString("en-US", { minimumFractionDigits: 0 })}
-                      </span>
-
-                      <button
-                        type="button"
-                        aria-label="Add to cart"
-                        className="w-7 h-7 rounded-full bg-slate-950 hover:bg-blue-600 text-white flex items-center justify-center transition-all shadow-xs active:scale-90 shrink-0 cursor-pointer"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                      </button>
                     </div>
                   </div>
                 );

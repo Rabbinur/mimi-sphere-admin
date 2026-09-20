@@ -84,7 +84,16 @@ export function PosReceiptModal({
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-500">Customer:</span>
-                <span className="font-bold">{receiptData.customer_name || "Walk-in Customer"}</span>
+                <span className="font-bold flex items-center gap-1">
+                  <span>{receiptData.customer_name || "Walk-in Customer"}</span>
+                  {receiptData.membership_tier && receiptData.membership_tier !== "Regular" && (
+                    <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${
+                      receiptData.membership_tier === "Gold" ? "bg-amber-100 text-amber-800" : "bg-slate-200 text-slate-800"
+                    }`}>
+                      {receiptData.membership_tier} Member
+                    </span>
+                  )}
+                </span>
               </div>
             </div>
 
@@ -120,10 +129,10 @@ export function PosReceiptModal({
               </table>
             </div>
 
-            {/* Totals & Calculations */}
-            <div className="border-t border-dashed border-slate-300 pt-2 space-y-1 text-[11px]">
-              <div className="flex justify-between items-center">
-                <span className="text-slate-600">Subtotal:</span>
+            {/* Totals Summary */}
+            <div className="border-t border-dashed border-slate-300 pt-2 space-y-1 text-[10.5px]">
+              <div className="flex justify-between items-center text-slate-600">
+                <span>Subtotal:</span>
                 <span>৳{receiptData.subtotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
               </div>
 
@@ -158,10 +167,22 @@ export function PosReceiptModal({
               )}
             </div>
 
-            {/* Footer Note */}
-            <div className="border-t border-dashed border-slate-300 pt-2 text-center text-[9.5px] text-slate-400 space-y-0.5">
+            {/* Footer Note & QR Code */}
+            <div className="border-t border-dashed border-slate-300 pt-2 text-center text-[9.5px] text-slate-400 space-y-1">
               <div className="font-bold text-slate-600">Thank You For Shopping With Us!</div>
               <div>Please keep this receipt for any exchange.</div>
+              {receiptData.qr_code && (
+                <div className="pt-2">
+                  <img
+                    src={receiptData.qr_code}
+                    alt="Scan to visit www.mimisphere.com"
+                    className="w-16 h-16 mx-auto block"
+                  />
+                  <div className="text-[8.5px] font-bold text-slate-500 mt-1">
+                    Scan to visit: www.mimisphere.com
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

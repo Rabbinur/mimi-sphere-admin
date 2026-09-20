@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { PosCartItem, PosReceiptData } from "./types";
+import { PosCartItem, PosCustomer, PosReceiptData } from "./types";
 import {
   Banknote,
   CheckCircle2,
   CreditCard,
+  Crown,
   DollarSign,
   Loader2,
   Phone,
@@ -20,6 +21,7 @@ interface PosCheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
   cartItems: PosCartItem[];
+  customer?: PosCustomer | null;
   subtotal: number;
   globalDiscount: { type: "fixed" | "percent"; value: number; coupon_code?: string };
   taxAmount: number;
@@ -31,6 +33,7 @@ export function PosCheckoutModal({
   isOpen,
   onClose,
   cartItems,
+  customer,
   subtotal,
   globalDiscount,
   taxAmount,
@@ -49,8 +52,17 @@ export function PosCheckoutModal({
   useEffect(() => {
     if (isOpen) {
       setTenderedAmount(String(grandTotal));
+      if (customer) {
+        setCustomerName(customer.name);
+        setCustomerPhone(customer.phone);
+        setCustomerEmail(customer.email || "");
+      } else {
+        setCustomerName("");
+        setCustomerPhone("");
+        setCustomerEmail("");
+      }
     }
-  }, [isOpen, grandTotal]);
+  }, [isOpen, grandTotal, customer]);
 
   if (!isOpen) return null;
 
@@ -80,6 +92,7 @@ export function PosCheckoutModal({
       customer_name: customerName.trim() || "Walk-in Customer",
       customer_phone: customerPhone.trim() || undefined,
       customer_email: customerEmail.trim() || undefined,
+      membership_tier: customer?.membership_tier || "Regular",
       items: cartItems,
       subtotal,
       discount: discountAmount,
@@ -233,7 +246,21 @@ export function PosCheckoutModal({
             </div>
           )}
 
-          {/* Customer Details (Optional) */}
+          {/* Customer Details & Membership */}
+          {customer && customer.membership_tier !== "Regular" && (
+            <div className={`p-2.5 rounded-xl border flex items-center justify-between text-xs font-bold ${
+              customer.membership_tier === "Gold"
+                ? "bg-amber-50 border-amber-300 text-amber-900"
+                : "bg-slate-100 border-slate-300 text-slate-900"
+            }`}>
+              <div className="flex items-center gap-2">
+                <Crown className="w-4 h-4 text-amber-600" />
+                <span>{customer.name} ({customer.membership_tier} Member - {customer.discount_percent}% Discount Applied)</span>
+              </div>
+              <span className="text-[10.5px] font-mono text-slate-500">Spent: ৳{customer.total_spent.toLocaleString()}</span>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-slate-600">Customer Name (Optional)</label>

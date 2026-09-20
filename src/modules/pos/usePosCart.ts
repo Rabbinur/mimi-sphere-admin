@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { PosCartItem, PosProductItem } from "./types";
+import { PosCartItem, PosProductItem, PosCustomer } from "./types";
 
 export function usePosCart() {
   const [cartItems, setCartItems] = useState<PosCartItem[]>([]);
+  const [customer, setCustomer] = useState<PosCustomer | null>(null);
   const [globalDiscount, setGlobalDiscount] = useState<{
     type: "fixed" | "percent";
     value: number;
@@ -14,6 +15,19 @@ export function usePosCart() {
     value: 0,
     coupon_code: "",
   });
+
+  const selectCustomer = useCallback((cust: PosCustomer | null) => {
+    setCustomer(cust);
+    if (cust && cust.discount_percent > 0) {
+      setGlobalDiscount({
+        type: "percent",
+        value: cust.discount_percent,
+        coupon_code: `${cust.membership_tier} Member (${cust.discount_percent}% Off)`,
+      });
+    } else if (!cust) {
+      setGlobalDiscount({ type: "fixed", value: 0, coupon_code: "" });
+    }
+  }, []);
 
   const addItem = useCallback((product: PosProductItem | PosCartItem) => {
     setCartItems((prev) => {
@@ -74,6 +88,7 @@ export function usePosCart() {
 
   const clearCart = useCallback(() => {
     setCartItems([]);
+    setCustomer(null);
     setGlobalDiscount({ type: "fixed", value: 0, coupon_code: "" });
   }, []);
 
@@ -101,6 +116,8 @@ export function usePosCart() {
 
   return {
     cartItems,
+    customer,
+    selectCustomer,
     addItem,
     updateQuantity,
     removeItem,
