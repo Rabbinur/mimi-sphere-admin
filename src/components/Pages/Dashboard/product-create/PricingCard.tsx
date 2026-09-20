@@ -32,8 +32,8 @@ export default function PricingCard({
                                         type="number"
                                         step="0.01"
                                         placeholder="0.00"
-                                        value={field.value || ""}
-                                        onChange={(e) => field.onChange(Number(e.target.value))}
+                                        value={field.value !== undefined && field.value !== null && field.value !== 0 ? field.value : (field.value === 0 ? "0" : "")}
+                                        onChange={(e) => field.onChange(e.target.value === "" ? 0 : Number(e.target.value))}
                                     />
                                 </FormControl>
                                 <FormDescription>Customer selling price in POS/Web</FormDescription>
@@ -53,8 +53,8 @@ export default function PricingCard({
                                         type="number"
                                         step="0.01"
                                         placeholder="0.00"
-                                        value={field.value || ""}
-                                        onChange={(e) => field.onChange(Number(e.target.value))}
+                                        value={field.value !== undefined && field.value !== null && field.value !== 0 ? field.value : (field.value === 0 ? "" : "")}
+                                        onChange={(e) => field.onChange(e.target.value === "" ? 0 : Number(e.target.value))}
                                     />
                                 </FormControl>
                                 <FormDescription>Original strike-through price</FormDescription>
@@ -74,8 +74,8 @@ export default function PricingCard({
                                         type="number"
                                         step="0.01"
                                         placeholder="0.00"
-                                        value={field.value || ""}
-                                        onChange={(e) => field.onChange(Number(e.target.value))}
+                                        value={field.value !== undefined && field.value !== null && field.value !== 0 ? field.value : (field.value === 0 ? "0" : "")}
+                                        onChange={(e) => field.onChange(e.target.value === "" ? 0 : Number(e.target.value))}
                                     />
                                 </FormControl>
                                 <FormDescription>Your purchase/supplier cost</FormDescription>

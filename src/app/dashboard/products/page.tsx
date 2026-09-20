@@ -16,6 +16,8 @@ interface TProduct {
     sku?: string;
     barcode?: string;
     product_price: number;
+    compare_at_price?: number;
+    cost_price?: number;
     product_categories?: Array<{ _id: string; name: string }> | string[];
     quantity: number;
     in_stock: boolean;
@@ -325,7 +327,8 @@ const AdminProductsPage = () => {
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price / Compare</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost per Item</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inventory</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Discovery</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -335,7 +338,7 @@ const AdminProductsPage = () => {
                     <tbody className="bg-white divide-y divide-gray-200">
                         {isFetching && (
                             <tr>
-                                <td colSpan={7} className="text-center py-2 text-primary bg-primary/5 text-xs font-medium">
+                                <td colSpan={8} className="text-center py-2 text-primary bg-primary/5 text-xs font-medium">
                                     <Loader2 className="h-4 w-4 inline animate-spin mr-2" />
                                     Updating data...
                                 </td>
@@ -343,7 +346,7 @@ const AdminProductsPage = () => {
                         )}
                         {!isLoading && products.length === 0 && (
                             <tr>
-                                <td colSpan={7} className="text-center py-10 text-gray-500">
+                                <td colSpan={8} className="text-center py-10 text-gray-500">
                                     No products found matching your criteria.
                                 </td>
                             </tr>
@@ -374,8 +377,37 @@ const AdminProductsPage = () => {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {(product.product_categories || []).map((c: any) => typeof c === 'string' ? c : c.name).join(', ') || "N/A"}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    ৳{product.product_price.toFixed(2)}
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                    <div className="font-bold text-gray-900">
+                                        ৳{Number(product.product_price || 0).toFixed(2)}
+                                    </div>
+                                    {product.compare_at_price && Number(product.compare_at_price) > Number(product.product_price) ? (
+                                        <div className="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
+                                            <span className="line-through">৳{Number(product.compare_at_price).toFixed(2)}</span>
+                                            <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-1 py-0.2 rounded">
+                                                -{Math.round(((Number(product.compare_at_price) - Number(product.product_price)) / Number(product.compare_at_price)) * 100)}%
+                                            </span>
+                                        </div>
+                                    ) : null}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                    <div className="font-semibold text-gray-800">
+                                        ৳{product.cost_price !== undefined && product.cost_price !== null ? Number(product.cost_price).toFixed(2) : "0.00"}
+                                    </div>
+                                    {(() => {
+                                        const price = Number(product.product_price) || 0;
+                                        const cost = Number(product.cost_price) || 0;
+                                        if (cost > 0 && price > 0) {
+                                            const profit = price - cost;
+                                            const margin = ((profit / price) * 100).toFixed(0);
+                                            return (
+                                                <div className={`text-[11px] font-semibold mt-0.5 ${profit >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                                                    {margin}% margin ({profit >= 0 ? "+" : ""}৳{profit.toFixed(0)})
+                                                </div>
+                                            );
+                                        }
+                                        return <span className="text-[11px] text-gray-400">No cost</span>;
+                                    })()}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full`}>

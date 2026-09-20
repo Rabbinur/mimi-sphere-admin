@@ -41,6 +41,7 @@ export default function ProductCreatePage() {
             product_images: [],
             product_price: 0,
             compare_at_price: 0,
+            cost_price: 0,
 
             sku: "",
             barcode: "",

@@ -43,6 +43,7 @@ export default function EditProductPage() {
             product_images: [],
             product_price: 0,
             compare_at_price: 0,
+            cost_price: 0,
 
             sku: "",
             barcode: "",
@@ -82,6 +83,7 @@ export default function EditProductPage() {
                 product_images: product.product_images || [],
                 product_price: Number(product.product_price) || 0,
                 compare_at_price: Number(product.compare_at_price) || 0,
+                cost_price: Number(product.cost_price) || 0,
 
                 sku: product.sku || "",
                 barcode: product.barcode || "",
