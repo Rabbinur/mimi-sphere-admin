@@ -86,29 +86,32 @@ export function PosProductGrid({
         <div className="flex items-center gap-2 pb-0.5">
           <button
             type="button"
-            onClick={() => onOpenOrdersModal ? onOpenOrdersModal() : null}
-            className="px-3.5 py-1.5 rounded-lg bg-[#009688] hover:bg-[#00897b] active:scale-95 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            onClick={() => (onOpenOrdersModal ? onOpenOrdersModal() : null)}
+            className="px-3.5 py-1.5 rounded-lg bg-[#009688] hover:bg-[#00897b] active:scale-95 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+            style={{ backgroundColor: "#009688", color: "#ffffff" }}
             title="View Recent POS Orders"
           >
-            <ShoppingCart className="w-3.5 h-3.5" />
+            <ShoppingCart className="w-3.5 h-3.5 text-white" />
             <span>View Orders</span>
           </button>
           <button
             type="button"
-            onClick={() => onResetCart ? onResetCart() : null}
-            className="px-3.5 py-1.5 rounded-lg bg-[#4f46e5] hover:bg-[#4338ca] active:scale-95 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            onClick={() => (onResetCart ? onResetCart() : null)}
+            className="px-3.5 py-1.5 rounded-lg bg-[#4f46e5] hover:bg-[#4338ca] active:scale-95 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+            style={{ backgroundColor: "#4f46e5", color: "#ffffff" }}
             title="Reset Cart & Start Fresh"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw className="w-3.5 h-3.5 text-white" />
             <span>Reset</span>
           </button>
           <button
             type="button"
-            onClick={() => onOpenTransactionsModal ? onOpenTransactionsModal() : null}
-            className="px-3.5 py-1.5 rounded-lg bg-[#2563eb] hover:bg-[#1d4ed8] active:scale-95 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            onClick={() => (onOpenTransactionsModal ? onOpenTransactionsModal() : null)}
+            className="px-3.5 py-1.5 rounded-lg bg-[#2563eb] hover:bg-[#1d4ed8] active:scale-95 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+            style={{ backgroundColor: "#2563eb", color: "#ffffff" }}
             title="Recent Transactions & Payments"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
+            <RefreshCw className="w-3.5 h-3.5 text-white" />
             <span>Transaction</span>
           </button>
         </div>

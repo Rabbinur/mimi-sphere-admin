@@ -897,6 +897,7 @@ export default function PosTerminalPage() {
 
             {/* Main Terminal Grid: Products Grid (Left) + Order Cart Panel (Right Desktop / Drawer Mobile) */}
             <main className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+                {/* Product Touch Grid & Dreams POS Actions */}
                 <PosProductGrid
                     products={allProducts}
                     cartItems={cartItems}
