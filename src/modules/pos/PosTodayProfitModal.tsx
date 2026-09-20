@@ -219,48 +219,51 @@ export function PosTodayProfitModal({
               <button
                 type="button"
                 onClick={() => setSelectedChannel("all")}
-                className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer flex flex-col items-center leading-tight ${
                   selectedChannel === "all"
                     ? "bg-white text-purple-700 shadow-xs font-bold"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                <span>All Sales</span>
-                <span className="text-[10.5px] opacity-75 font-normal">(সার্বিক)</span>
+                <span className="text-xs font-bold">All Sales</span>
+                <span className="text-[10px] font-normal opacity-80">(সার্বিক)</span>
               </button>
               <button
                 type="button"
                 onClick={() => setSelectedChannel("pos")}
-                className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer flex flex-col items-center leading-tight ${
                   selectedChannel === "pos"
                     ? "bg-white text-purple-700 shadow-xs font-bold"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                <span>POS Counter</span>
-                <span className="text-[10.5px] opacity-75 font-normal">(কাউন্টার)</span>
+                <span className="text-xs font-bold">POS Counter</span>
+                <span className="text-[10px] font-normal opacity-80">(কাউন্টার)</span>
               </button>
               <button
                 type="button"
                 onClick={() => setSelectedChannel("online")}
-                className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer flex flex-col items-center leading-tight ${
                   selectedChannel === "online"
                     ? "bg-white text-purple-700 shadow-xs font-bold"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                <span>Online Store</span>
-                <span className="text-[10.5px] opacity-75 font-normal">(অনলাইন)</span>
+                <span className="text-xs font-bold">Online Store</span>
+                <span className="text-[10px] font-normal opacity-80">(অনলাইন)</span>
               </button>
             </div>
 
             <button
               type="button"
               onClick={() => setIsAddingExpense((prev) => !prev)}
-              className="px-2.5 py-1 text-xs font-bold bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 rounded-lg flex items-center gap-1 transition-all cursor-pointer shadow-2xs"
+              className="px-3 py-1 text-xs font-bold bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 rounded-xl flex flex-col items-center leading-tight transition-all cursor-pointer shadow-2xs shrink-0"
             >
-              <Plus className="w-3 h-3 stroke-[3]" />
-              <span>+ খরচ লিখুন (Expense)</span>
+              <div className="flex items-center gap-1 font-bold">
+                <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                <span>+ খরচ লিখুন</span>
+              </div>
+              <span className="text-[10px] font-normal text-rose-500">(Add Expense)</span>
             </button>
           </div>
 
@@ -380,10 +383,10 @@ export function PosTodayProfitModal({
                   key={idx}
                   className={`flex items-center justify-between px-4 py-2.5 text-xs sm:text-sm ${row.bg} text-slate-700 hover:bg-slate-100/60 transition-colors`}
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-baseline gap-0.5 sm:gap-1.5">
-                    <span className="text-slate-800 font-semibold">{row.label}</span>
-                    <span className="text-[11px] text-slate-500 font-medium font-sans">
-                      ({row.bangla})
+                  <div className="flex flex-col text-left py-0.5">
+                    <span className="text-slate-800 font-semibold text-xs sm:text-sm">{row.label}</span>
+                    <span className="text-[11px] text-slate-500 font-medium font-sans leading-tight">
+                      {row.bangla}
                     </span>
                   </div>
                   <span className="font-mono font-bold text-slate-900 shrink-0 ml-3">

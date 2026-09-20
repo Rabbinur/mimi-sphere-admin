@@ -88,17 +88,6 @@ export default function PosTerminalPage() {
     const { data: shiftSummaryResponse, refetch: refetchShiftSummary } = useGetPosShiftSummaryQuery();
     const shiftData = (shiftSummaryResponse as any)?.data || shiftSummaryResponse;
 
-    // Load last receipt from localStorage on mount
-    useEffect(() => {
-        try {
-            const saved = localStorage.getItem("pos_last_receipt");
-            if (saved) {
-                setReceiptData(JSON.parse(saved));
-            }
-        } catch (e) {
-            console.error("Failed to load last receipt", e);
-        }
-    }, []);
 
     // RTK Query API Hooks
     const { data: productsData, isLoading: isProductsLoading, isFetching: isProductsFetching, refetch: refetchProducts } = useGetPosProductsQuery({
@@ -791,51 +780,35 @@ export default function PosTerminalPage() {
         refetchProducts();
         refetchShiftSummary();
 
-        // Save last receipt to localStorage for instant reprinting
-        try {
-            localStorage.setItem("pos_last_receipt", JSON.stringify(data));
-        } catch (e) {
-            console.error("Failed to persist last receipt", e);
-        }
-        
         // Immediately open thermal receipt window on sale confirmation
         openThermalReceiptNewTab(data);
     };
 
-    // Trigger hook to query last POS receipt from database if needed
+    // Trigger hook to query last POS receipt from database
     const [fetchLastReceipt] = useLazyGetLastPosReceiptQuery();
 
-    // Print Last Receipt handler (matching Image 3)
+    // Print Last Receipt handler - 100% Database Driven
     const handlePrintLastReceipt = useCallback(async () => {
-        let target = receiptData;
-        if (!target) {
-            try {
-                const saved = localStorage.getItem("pos_last_receipt");
-                if (saved) target = JSON.parse(saved);
-            } catch (e) {}
-        }
+        try {
+            toast.info("ডাটাবেজ থেকে সর্বশেষ রসিদ খোঁজা হচ্ছে...");
+            const res = await fetchLastReceipt().unwrap();
+            const target = res?.data || res;
 
-        // If not found in localStorage/state, query database for latest POS sale
-        if (!target) {
-            try {
-                toast.info("Checking last receipt from database...");
-                const res = await fetchLastReceipt().unwrap();
-                target = res?.data || res;
-            } catch (e) {
-                console.error("Failed to query last receipt from database", e);
+            if (target && (target.receipt_number || target.order_number)) {
+                setReceiptData(target);
+                setIsReceiptOpen(true); // Open receipt modal so user sees full receipt
+                toast.success(`Opening Receipt #${target.receipt_number || target.order_number}`);
+                openThermalReceiptNewTab(target); // Launch thermal receipt tab/print
+            } else {
+                playBeepSound(400);
+                toast.error("ডাটাবেজে কোনো পূর্ববর্তী পিওএস অর্ডার পাওয়া যায়নি।");
             }
-        }
-
-        if (target && (target.receipt_number || target.order_number)) {
-            setReceiptData(target);
-            setIsReceiptOpen(true); // Open receipt modal so user sees full receipt
-            toast.success(`Opening Receipt #${target.receipt_number || target.order_number}`);
-            openThermalReceiptNewTab(target); // Launch thermal receipt tab/print
-        } else {
+        } catch (e) {
+            console.error("Failed to query last receipt from database", e);
             playBeepSound(400);
-            toast.error("No previous POS order found in database. Complete a sale first.");
+            toast.error("ডাটাবেজ থেকে রসিদ আনতে ব্যর্থ হয়েছে।");
         }
-    }, [receiptData, fetchLastReceipt, openThermalReceiptNewTab]);
+    }, [fetchLastReceipt, openThermalReceiptNewTab]);
 
     const handleResetCart = useCallback(() => {
         clearCart();
