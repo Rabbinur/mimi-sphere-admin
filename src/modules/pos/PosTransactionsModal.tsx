@@ -6,28 +6,44 @@ import {
   FileSpreadsheet,
   FileText,
   Loader2,
+  Pencil,
   Printer,
+  Save,
   Search,
   User,
   X,
 } from "lucide-react";
-import { useGetPosTransactionsQuery } from "@/components/Redux/RTK/posApi";
+import {
+  useGetPosTransactionsQuery,
+  useUpdatePosTransactionMutation,
+} from "@/components/Redux/RTK/posApi";
 import { toast } from "sonner";
 
 interface PosTransactionsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onViewReceipt?: (reference: string) => void;
+  onViewReceipt?: (receiptData: any) => void;
+  onPrintReceipt?: (receiptData: any) => void;
 }
 
 export function PosTransactionsModal({
   isOpen,
   onClose,
   onViewReceipt,
+  onPrintReceipt,
 }: PosTransactionsModalProps) {
   const [activeTab, setActiveTab] = useState<"purchase" | "payment" | "return" | "all">("purchase");
   const [search, setSearch] = useState("");
   const [selectedTxIds, setSelectedTxIds] = useState<string[]>([]);
+  const [editingTx, setEditingTx] = useState<any | null>(null);
+  const [editForm, setEditForm] = useState({
+    customer_name: "",
+    customer_phone: "",
+    payment_method: "POS_CASH",
+    payment_status: "paid",
+  });
+
+  const [updateTx, { isLoading: isUpdating }] = useUpdatePosTransactionMutation();
 
   const { data: response, isLoading, isFetching } = useGetPosTransactionsQuery(
     {
@@ -48,6 +64,52 @@ export function PosTransactionsModal({
     setSelectedTxIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
+  };
+
+  const buildReceipt = (tx: any) => ({
+    receipt_number: tx.reference,
+    order_number: tx.reference,
+    order_id: String(tx._id),
+    created_at: `${tx.date} ${tx.time}`,
+    customer_name: tx.customer_name || "Walk-in Customer",
+    customer_phone: tx.customer_phone || "",
+    customer_email: "walkin@store.local",
+    membership_tier: "Regular",
+    subtotal: tx.amount,
+    discount: 0,
+    tax: 0,
+    total: tx.amount,
+    payment_method: tx.payment_method || "POS_CASH",
+    items: (tx.products || []).map((p: any) => ({
+      product_name: p.title || p.product_name || "Purchased Item",
+      quantity: p.quantity || 1,
+      price: p.price || 0,
+      total: p.total_price || (p.price || 0) * (p.quantity || 1),
+    })),
+  });
+
+  const handleOpenEdit = (tx: any) => {
+    setEditingTx(tx);
+    setEditForm({
+      customer_name: tx.customer_name || "",
+      customer_phone: tx.customer_phone || "",
+      payment_method: tx.payment_method || "POS_CASH",
+      payment_status: tx.payment_status || "paid",
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingTx) return;
+    try {
+      await updateTx({
+        id: editingTx._id,
+        data: editForm,
+      }).unwrap();
+      toast.success(`Transaction #${editingTx.reference} updated successfully!`);
+      setEditingTx(null);
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to update transaction");
+    }
   };
 
   const handleExportPDF = () => {
@@ -263,11 +325,13 @@ export function PosTransactionsModal({
                         </td>
                         <td className="p-3.5 text-center">
                           <div className="flex items-center justify-center gap-1.5">
+                            {/* View Invoice / Receipt */}
                             <button
                               type="button"
                               onClick={() => {
+                                const receipt = buildReceipt(tx);
                                 if (onViewReceipt) {
-                                  onViewReceipt(tx.reference);
+                                  onViewReceipt(receipt);
                                 } else {
                                   toast.info(`Invoice: ${tx.reference}`);
                                 }
@@ -277,9 +341,28 @@ export function PosTransactionsModal({
                             >
                               <Eye className="w-3.5 h-3.5" />
                             </button>
+
+                            {/* Edit Transaction */}
                             <button
                               type="button"
-                              onClick={() => toast.info(`Printing transaction ${tx.reference}`)}
+                              onClick={() => handleOpenEdit(tx)}
+                              className="w-7 h-7 rounded-lg border border-slate-200 bg-white hover:bg-amber-50 hover:border-amber-200 text-slate-600 hover:text-amber-600 flex items-center justify-center transition-colors cursor-pointer"
+                              title="Edit Transaction"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Print Thermal Receipt */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const receipt = buildReceipt(tx);
+                                if (onPrintReceipt) {
+                                  onPrintReceipt(receipt);
+                                } else {
+                                  toast.info(`Printing transaction ${tx.reference}`);
+                                }
+                              }}
                               className="w-7 h-7 rounded-lg border border-slate-200 bg-white hover:bg-emerald-50 hover:border-emerald-200 text-slate-600 hover:text-emerald-600 flex items-center justify-center transition-colors cursor-pointer"
                               title="Print Receipt"
                             >
@@ -296,6 +379,107 @@ export function PosTransactionsModal({
           )}
         </div>
       </div>
+
+      {/* Edit Transaction Modal */}
+      {editingTx && (
+        <div
+          className="fixed inset-0 z-[10000] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+          onClick={() => setEditingTx(null)}
+        >
+          <div
+            className="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-slate-200 overflow-hidden flex flex-col animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <div>
+                <h3 className="text-sm font-bold text-slate-800">Edit Transaction</h3>
+                <span className="text-[11px] font-mono text-slate-500">#{editingTx.reference}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingTx(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-3.5">
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Customer Name</label>
+                <input
+                  type="text"
+                  value={editForm.customer_name}
+                  onChange={(e) => setEditForm({ ...editForm, customer_name: e.target.value })}
+                  placeholder="Customer Name"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Customer Phone</label>
+                <input
+                  type="text"
+                  value={editForm.customer_phone}
+                  onChange={(e) => setEditForm({ ...editForm, customer_phone: e.target.value })}
+                  placeholder="Phone Number"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-blue-500 focus:outline-none font-mono"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Payment Method</label>
+                  <select
+                    value={editForm.payment_method}
+                    onChange={(e) => setEditForm({ ...editForm, payment_method: e.target.value })}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-blue-500 focus:outline-none bg-white cursor-pointer font-bold"
+                  >
+                    <option value="POS_CASH">Cash</option>
+                    <option value="POS_CARD">Card</option>
+                    <option value="POS_BKASH">bKash</option>
+                    <option value="POS_NAGAD">Nagad</option>
+                    <option value="ONLINE">Online</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Payment Status</label>
+                  <select
+                    value={editForm.payment_status}
+                    onChange={(e) => setEditForm({ ...editForm, payment_status: e.target.value })}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-blue-500 focus:outline-none bg-white cursor-pointer font-bold"
+                  >
+                    <option value="paid">Paid</option>
+                    <option value="pending">Pending</option>
+                    <option value="refunded">Refunded</option>
+                    <option value="failed">Failed</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setEditingTx(null)}
+                className="px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isUpdating}
+                onClick={handleSaveEdit}
+                className="px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isUpdating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                <span>Save Changes</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

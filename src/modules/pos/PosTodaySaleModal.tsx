@@ -30,7 +30,7 @@ export function PosTodaySaleModal({
     { label: "Cash Payment", value: formatAmount(cashSales), bg: "bg-white" },
     { label: "Credit Card Payment", value: formatAmount(cardSales), bg: "bg-slate-50" },
     { label: "Cheque Payment:", value: formatAmount(0), bg: "bg-white" },
-    { label: "Deposit Payment", value: formatAmount(0), bg: "bg-slate-50" },
+    { label: "Deposit Payment", value: formatAmount(Number(shiftData?.deposit_payment || 0)), bg: "bg-slate-50" },
     { label: "Points Payment", value: formatAmount(0), bg: "bg-white" },
     { label: "Gift Card Payment", value: formatAmount(0), bg: "bg-slate-50" },
     { label: "Scan & Pay", value: formatAmount(digitalSales), bg: "bg-white" },

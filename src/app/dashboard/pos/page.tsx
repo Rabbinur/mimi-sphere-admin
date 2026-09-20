@@ -1104,8 +1104,14 @@ export default function PosTerminalPage() {
             <PosTransactionsModal
                 isOpen={isTransactionsModalOpen}
                 onClose={() => setIsTransactionsModalOpen(false)}
-                onViewReceipt={(refNumber) => {
-                    toast.info(`Checking receipt for transaction #${refNumber}`);
+                onViewReceipt={(receipt) => {
+                    setReceiptData(receipt);
+                    setIsReceiptOpen(true);
+                }}
+                onPrintReceipt={(receipt) => {
+                    setReceiptData(receipt);
+                    setIsReceiptOpen(true);
+                    openThermalReceiptNewTab(receipt);
                 }}
             />
         </div>

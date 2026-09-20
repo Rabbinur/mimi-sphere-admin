@@ -33,9 +33,50 @@ export const posApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["products", "order"],
     }),
-    getPosShiftSummary: builder.query<any, void>({
-      query: () => "/admin/pos/shift-summary",
+    getPosShiftSummary: builder.query<any, { channel?: string; date?: string } | void>({
+      query: (params) => {
+        const q = new URLSearchParams();
+        if (params && typeof params === "object") {
+          if (params.channel) q.append("channel", params.channel);
+          if (params.date) q.append("date", params.date);
+        }
+        const qs = q.toString();
+        return `/admin/pos/shift-summary${qs ? `?${qs}` : ""}`;
+      },
       providesTags: ["order"],
+    }),
+    createPosExpense: builder.mutation<
+      any,
+      {
+        title: string;
+        amount: number;
+        category?: string;
+        notes?: string;
+        date?: string;
+      }
+    >({
+      query: (data) => ({
+        url: "/admin/pos/expenses",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["order"],
+    }),
+    getPosExpenses: builder.query<any, { date?: string } | void>({
+      query: (params) => {
+        const q = new URLSearchParams();
+        if (params?.date) q.append("date", params.date);
+        const qs = q.toString();
+        return `/admin/pos/expenses${qs ? `?${qs}` : ""}`;
+      },
+      providesTags: ["order"],
+    }),
+    deletePosExpense: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/admin/pos/expenses/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["order"],
     }),
     getLastPosReceipt: builder.query<any, void>({
       query: () => "/admin/pos/last-receipt",
@@ -104,6 +145,26 @@ export const posApi = baseApi.injectEndpoints({
       },
       providesTags: ["order"],
     }),
+    updatePosTransaction: builder.mutation<
+      any,
+      {
+        id: string;
+        data: {
+          customer_name?: string;
+          customer_phone?: string;
+          payment_method?: string;
+          payment_status?: string;
+          order_status?: string;
+        };
+      }
+    >({
+      query: ({ id, data }) => ({
+        url: `/admin/pos/transactions/${id}`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ["order"],
+    }),
   }),
 });
 
@@ -122,4 +183,8 @@ export const {
   useUpdateMembershipSettingsMutation,
   useGetPosOrdersListQuery,
   useGetPosTransactionsQuery,
+  useUpdatePosTransactionMutation,
+  useCreatePosExpenseMutation,
+  useGetPosExpensesQuery,
+  useDeletePosExpenseMutation,
 } = posApi;
