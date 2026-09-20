@@ -8,6 +8,10 @@ import {
     PosCheckoutModal,
     PosReceiptModal,
     PosShiftModal,
+    PosCashRegisterModal,
+    PosTodaySaleModal,
+    PosTodayProfitModal,
+    PosCalculatorModal,
     PosVariantModal,
     PosCameraScannerModal,
     playBeepSound,
@@ -16,8 +20,14 @@ import {
     PosProductItem,
     PosReceiptData,
 } from "@/modules/pos";
-import { useGetPosProductsQuery, useScanBarcodeMutation } from "@/components/Redux/RTK/posApi";
+import {
+    useGetPosProductsQuery,
+    useScanBarcodeMutation,
+    useGetPosShiftSummaryQuery,
+    useLazyGetLastPosReceiptQuery,
+} from "@/components/Redux/RTK/posApi";
 import { useAllCategoryQuery } from "@/components/Redux/RTK/categoryApi";
+import { toast } from "sonner";
 
 export default function PosTerminalPage() {
     // POS Cart State Management Hook
@@ -62,6 +72,29 @@ export default function PosTerminalPage() {
     const [isReceiptOpen, setIsReceiptOpen] = useState(false);
     const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
     const [receiptData, setReceiptData] = useState<PosReceiptData | null>(null);
+
+    // Dreams POS Header Modal States
+    const [isCashRegisterOpen, setIsCashRegisterOpen] = useState(false);
+    const [isTodaySaleOpen, setIsTodaySaleOpen] = useState(false);
+    const [isTodayProfitOpen, setIsTodayProfitOpen] = useState(false);
+    const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
+    const [selectedBranch, setSelectedBranch] = useState("Freshmart");
+
+    // Fetch Shift Summary Data for Statistics
+    const { data: shiftSummaryResponse, refetch: refetchShiftSummary } = useGetPosShiftSummaryQuery();
+    const shiftData = (shiftSummaryResponse as any)?.data || shiftSummaryResponse;
+
+    // Load last receipt from localStorage on mount
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem("pos_last_receipt");
+            if (saved) {
+                setReceiptData(JSON.parse(saved));
+            }
+        } catch (e) {
+            console.error("Failed to load last receipt", e);
+        }
+    }, []);
 
     // RTK Query API Hooks
     const { data: productsData, isLoading: isProductsLoading, isFetching: isProductsFetching, refetch: refetchProducts } = useGetPosProductsQuery({
@@ -220,7 +253,10 @@ export default function PosTerminalPage() {
 
     const openThermalReceiptNewTab = useCallback((receiptData: PosReceiptData) => {
         const win = window.open("", "_blank", "width=450,height=700");
-        if (!win) return;
+        if (!win) {
+            toast.info("Receipt preview is open on screen for printing.");
+            return;
+        }
 
         const itemsRows = (receiptData.items || []).map((it) => `
             <tr style="border-bottom: 1px dashed #cbd5e1;">
@@ -749,18 +785,69 @@ export default function PosTerminalPage() {
         setReceiptData(data);
         setIsReceiptOpen(true);
         refetchProducts();
+        refetchShiftSummary();
+
+        // Save last receipt to localStorage for instant reprinting
+        try {
+            localStorage.setItem("pos_last_receipt", JSON.stringify(data));
+        } catch (e) {
+            console.error("Failed to persist last receipt", e);
+        }
         
         // Immediately open thermal receipt window on sale confirmation
         openThermalReceiptNewTab(data);
     };
 
+    // Trigger hook to query last POS receipt from database if needed
+    const [fetchLastReceipt] = useLazyGetLastPosReceiptQuery();
+
+    // Print Last Receipt handler (matching Image 3)
+    const handlePrintLastReceipt = useCallback(async () => {
+        let target = receiptData;
+        if (!target) {
+            try {
+                const saved = localStorage.getItem("pos_last_receipt");
+                if (saved) target = JSON.parse(saved);
+            } catch (e) {}
+        }
+
+        // If not found in localStorage/state, query database for latest POS sale
+        if (!target) {
+            try {
+                toast.info("Checking last receipt from database...");
+                const res = await fetchLastReceipt().unwrap();
+                target = res?.data || res;
+            } catch (e) {
+                console.error("Failed to query last receipt from database", e);
+            }
+        }
+
+        if (target && (target.receipt_number || target.order_number)) {
+            setReceiptData(target);
+            setIsReceiptOpen(true); // Open receipt modal so user sees full receipt
+            toast.success(`Opening Receipt #${target.receipt_number || target.order_number}`);
+            openThermalReceiptNewTab(target); // Launch thermal receipt tab/print
+        } else {
+            playBeepSound(400);
+            toast.error("No previous POS order found in database. Complete a sale first.");
+        }
+    }, [receiptData, fetchLastReceipt, openThermalReceiptNewTab]);
+
     return (
         <div className="fixed inset-0 z-[60] flex flex-col bg-slate-100 overflow-hidden font-sans select-none">
-            {/* Top Bar */}
+            {/* Top Bar (Dreams POS Header Style) */}
             <PosHeader
                 onOpenShiftModal={() => setIsShiftModalOpen(true)}
+                onOpenCashRegisterModal={() => setIsCashRegisterOpen(true)}
+                onOpenTodaySaleModal={() => setIsTodaySaleOpen(true)}
+                onOpenTodayProfitModal={() => setIsTodayProfitOpen(true)}
+                onOpenCalculatorModal={() => setIsCalculatorOpen(true)}
+                onPrintLastReceipt={handlePrintLastReceipt}
                 onOpenCameraScanner={() => setIsCameraScannerOpen(true)}
-                onRefresh={refetchProducts}
+                onRefresh={() => {
+                    refetchProducts();
+                    refetchShiftSummary();
+                }}
                 barcodeStatusMessage={barcodeStatusMessage}
                 isScanning={isScanning}
                 cartItemCount={totalItemCount}
@@ -771,6 +858,7 @@ export default function PosTerminalPage() {
             <main className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
                 <PosProductGrid
                     products={allProducts}
+                    cartItems={cartItems}
                     isLoading={isProductsLoading && page === 1}
                     isFetchingMore={isProductsFetching && page > 1}
                     hasMore={hasMore}
@@ -922,6 +1010,33 @@ export default function PosTerminalPage() {
             <PosShiftModal
                 isOpen={isShiftModalOpen}
                 onClose={() => setIsShiftModalOpen(false)}
+            />
+
+            {/* Cash Register Details Modal (Image 2) */}
+            <PosCashRegisterModal
+                isOpen={isCashRegisterOpen}
+                onClose={() => setIsCashRegisterOpen(false)}
+                shiftData={shiftData}
+            />
+
+            {/* Today's Sale Modal (Image 4) */}
+            <PosTodaySaleModal
+                isOpen={isTodaySaleOpen}
+                onClose={() => setIsTodaySaleOpen(false)}
+                shiftData={shiftData}
+            />
+
+            {/* Today's Profit Modal (Image 5) */}
+            <PosTodayProfitModal
+                isOpen={isTodayProfitOpen}
+                onClose={() => setIsTodayProfitOpen(false)}
+                shiftData={shiftData}
+            />
+
+            {/* Quick Calculator Modal */}
+            <PosCalculatorModal
+                isOpen={isCalculatorOpen}
+                onClose={() => setIsCalculatorOpen(false)}
             />
         </div>
     );

@@ -1,5 +1,17 @@
 "use client";
-import { Bell, ChevronDown, Lock, Menu, Power, Search } from "lucide-react";
+
+import {
+  Bell,
+  ChevronDown,
+  Laptop,
+  Lock,
+  Maximize,
+  Menu,
+  Minimize,
+  Power,
+  Search
+} from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -22,6 +34,7 @@ const DashboardHeader = () => {
   const [mounted, setMounted] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [openPasswordModal, setOpenPasswordModal] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const dispatch = useAppDispatch();
   const user = useAppSelector(useCurrentUserInfo);
@@ -29,7 +42,27 @@ const DashboardHeader = () => {
 
   useEffect(() => {
     setMounted(true);
+
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.error("Error enabling fullscreen:", err);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch((err) => {
+          console.error("Error exiting fullscreen:", err);
+        });
+      }
+    }
+  };
 
   if (!mounted) {
     return <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 h-16 flex items-center justify-between px-4 md:px-8" />;
@@ -65,7 +98,33 @@ const DashboardHeader = () => {
       </div>
 
       {/* Right: Actions & Profile */}
-      <div className="flex items-center gap-2 md:gap-4">
+      <div className="flex items-center gap-2 md:gap-3">
+        {/* POS Shortcut */}
+        <Link
+          href="/dashboard/pos"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#1e293b] hover:bg-[#0f172a] active:scale-95 text-white text-xs md:text-sm font-semibold shadow-xs hover:shadow transition-all shrink-0"
+          title="Open POS Terminal"
+        >
+          <Laptop className="w-4 h-4 text-slate-200" />
+          <span>POS</span>
+        </Link>
+
+        {/* Fullscreen Button */}
+        <button
+          type="button"
+          onClick={toggleFullscreen}
+          className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200/80 active:scale-95 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-all cursor-pointer shrink-0 border border-slate-200/70"
+          title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+        >
+          {isFullscreen ? (
+            <Minimize className="w-4 h-4" />
+          ) : (
+            <Maximize className="w-4 h-4" />
+          )}
+        </button>
+
+        <div className="w-[1px] h-6 bg-slate-200 mx-0.5 hidden sm:block" />
+
         {/* Notifications */}
         <Button
           variant="ghost"

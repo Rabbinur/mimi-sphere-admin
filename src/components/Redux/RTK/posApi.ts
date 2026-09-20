@@ -37,6 +37,10 @@ export const posApi = baseApi.injectEndpoints({
       query: () => "/admin/pos/shift-summary",
       providesTags: ["order"],
     }),
+    getLastPosReceipt: builder.query<any, void>({
+      query: () => "/admin/pos/last-receipt",
+      providesTags: ["order"],
+    }),
     lookupCustomer: builder.query<any, string>({
       query: (phone) => `/admin/pos/customer/${encodeURIComponent(phone)}`,
       providesTags: ["order"],
@@ -76,6 +80,8 @@ export const {
   useGetPosProductsQuery,
   useCreatePosOrderMutation,
   useGetPosShiftSummaryQuery,
+  useGetLastPosReceiptQuery,
+  useLazyGetLastPosReceiptQuery,
   useLookupCustomerQuery,
   useLazyLookupCustomerQuery,
   useGetMembersListQuery,

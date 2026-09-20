@@ -5,6 +5,7 @@ import { PosProductItem } from "./types";
 import {
   Barcode,
   Camera,
+  Check,
   Layers,
   Package,
   Plus,
@@ -15,6 +16,7 @@ import { getImageUrl } from "@/lib/api";
 
 interface PosProductGridProps {
   products: PosProductItem[];
+  cartItems?: any[];
   isLoading: boolean;
   isFetchingMore?: boolean;
   hasMore?: boolean;
@@ -32,6 +34,7 @@ interface PosProductGridProps {
 
 export function PosProductGrid({
   products,
+  cartItems = [],
   isLoading,
   isFetchingMore,
   hasMore,
@@ -47,6 +50,8 @@ export function PosProductGrid({
   onSelectCategory,
 }: PosProductGridProps) {
   const [manualBarcodeInput, setManualBarcodeInput] = useState("");
+
+  const cartProductIds = new Set((cartItems || []).map((i: any) => i.product_id));
 
   const handleBarcodeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,37 +163,48 @@ export function PosProductGrid({
                 const isOutOfStock = prod.stock_quantity <= 0 && !prod.has_variants;
                 const optionsCount = prod.variants_count || (prod.variants ? prod.variants.length : 0);
 
+                const isInCart = cartProductIds.has(prod.product_id);
+
                 return (
                   <div
                     key={prod.product_id}
                     onClick={() => !isOutOfStock && handleProductCardClick(prod)}
-                    className={`group bg-white rounded-2xl border overflow-hidden flex flex-col transition-all duration-150 relative select-none ${
-                      isOutOfStock
+                    className={`group bg-white rounded-2xl border p-2.5 sm:p-3 flex flex-col transition-all duration-150 relative select-none ${
+                      isInCart
+                        ? "border-emerald-500 ring-2 ring-emerald-500/20 shadow-xs"
+                        : isOutOfStock
                         ? "opacity-50 cursor-not-allowed border-slate-200 bg-slate-50"
-                        : "border-slate-200/90 hover:border-blue-500 hover:shadow-lg active:scale-[0.98] cursor-pointer"
+                        : "border-slate-200/90 hover:border-slate-300 hover:shadow-md active:scale-[0.98] cursor-pointer"
                     }`}
                   >
-                    {/* Full-bleed image */}
-                    <div className="relative w-full aspect-square bg-slate-100 shrink-0 overflow-hidden">
+                    {/* Centered product image in soft rounded container */}
+                    <div className="relative w-full aspect-square bg-[#f8f9fa] rounded-xl flex items-center justify-center p-3 shrink-0 overflow-hidden">
                       {img ? (
                         <img
                           src={img}
                           alt={prod.product_name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
                           loading="lazy"
                         />
                       ) : (
                         <div className="w-full h-full flex flex-col items-center justify-center gap-1">
-                          <Package className="w-6 h-6 text-slate-300" />
-                          <span className="text-[9px] font-bold text-slate-300 uppercase tracking-wide">
+                          <Package className="w-7 h-7 text-slate-300" />
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">
                             {prod.product_name.substring(0, 8)}
                           </span>
                         </div>
                       )}
 
+                      {/* Active in cart checkmark badge — top right (Screenshot 1) */}
+                      {isInCart && (
+                        <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-xs z-10">
+                          <Check className="w-2.5 h-2.5 stroke-[3]" />
+                        </div>
+                      )}
+
                       {/* Variant badge — top left */}
                       {prod.has_variants && optionsCount > 0 && (
-                        <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-blue-600/90 backdrop-blur-sm text-white text-[8px] font-black rounded-md flex items-center gap-0.5 shadow">
+                        <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-blue-600/90 backdrop-blur-xs text-white text-[8px] font-black rounded-md flex items-center gap-0.5 shadow-xs z-10">
                           <Zap className="w-2 h-2 fill-white" />
                           {optionsCount} OPT
                         </div>
@@ -196,7 +212,7 @@ export function PosProductGrid({
 
                       {/* Out of stock overlay */}
                       {isOutOfStock && (
-                        <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+                        <div className="absolute inset-0 bg-white/75 backdrop-blur-[1px] flex items-center justify-center z-10">
                           <span className="text-[9px] font-black text-rose-600 bg-white px-2 py-0.5 rounded-full border border-rose-200 shadow-xs">
                             OUT OF STOCK
                           </span>
@@ -204,51 +220,27 @@ export function PosProductGrid({
                       )}
                     </div>
 
-                    {/* Info & Action */}
-                    <div className="p-2 flex flex-col gap-1.5 flex-1">
+                    {/* Info matching Screenshot 1 */}
+                    <div className="flex flex-col flex-1 mt-2.5">
+                      {/* Category name */}
+                      <span className="text-[11px] sm:text-xs text-slate-400 font-medium truncate leading-none">
+                        {prod.category_name || "General"}
+                      </span>
+
                       {/* Product name */}
-                      <h4 className="text-[11px] font-bold text-slate-800 line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
+                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-1 mt-1 leading-snug group-hover:text-primary transition-colors">
                         {prod.product_name}
                       </h4>
 
-                      {/* Variant label or SKU */}
-                      {(prod.combination_label || prod.sku) && (
-                        <span className="text-[8.5px] font-mono text-slate-400 truncate">
-                          {prod.combination_label || `SKU: ${prod.sku}`}
+                      {/* Bottom line: Stock in Pink + Price in Teal */}
+                      <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-100/80">
+                        <span className="text-[11px] sm:text-xs font-bold text-pink-500">
+                          {prod.stock_quantity > 0 ? `${prod.stock_quantity} Pcs` : "0 Pcs"}
                         </span>
-                      )}
 
-                      {/* Bottom: Price + stock pill + add button */}
-                      <div className="flex items-center justify-between mt-auto pt-1 border-t border-slate-100">
-                        {/* Left: price */}
-                        <span className="text-[13px] font-black font-mono text-slate-950 leading-none">
+                        <span className="text-xs sm:text-sm font-black font-mono text-teal-600">
                           ৳{prod.price.toLocaleString("en-US", { minimumFractionDigits: 0 })}
                         </span>
-
-                        <div className="flex items-center gap-1.5">
-                          {/* Stock pill */}
-                          <span className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8.5px] font-bold ${
-                            prod.stock_quantity > 10
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                              : prod.stock_quantity > 0
-                              ? "bg-amber-50 text-amber-700 border border-amber-200"
-                              : "bg-rose-50 text-rose-600 border border-rose-200"
-                          }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${
-                              prod.stock_quantity > 10 ? "bg-emerald-500" : prod.stock_quantity > 0 ? "bg-amber-500" : "bg-rose-500"
-                            }`} />
-                            {prod.stock_quantity > 0 ? prod.stock_quantity : "0"}
-                          </span>
-
-                          {/* Add button */}
-                          <button
-                            type="button"
-                            aria-label="Add to cart"
-                            className="w-6 h-6 rounded-full bg-slate-900 hover:bg-blue-600 text-white flex items-center justify-center transition-all active:scale-90 shrink-0 cursor-pointer shadow-sm"
-                          >
-                            <Plus className="w-3 h-3" />
-                          </button>
-                        </div>
                       </div>
                     </div>
                   </div>

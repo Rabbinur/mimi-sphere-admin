@@ -10,6 +10,7 @@ export interface PosProductItem {
   stock_quantity: number;
   image?: string;
   category_id?: string;
+  category_name?: string;
   has_variants?: boolean;
   variants_count?: number;
   variants?: Array<{
