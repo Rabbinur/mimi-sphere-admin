@@ -41,7 +41,7 @@ export function PosShiftModal({ isOpen, onClose }: PosShiftModalProps) {
   const digitalSales = Number(data.digital_sales || 0);
 
   return (
-    <div className="fixed inset-0 z-[999] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
+    <div className="fixed top-16 inset-x-0 bottom-0 z-[90] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
       <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 overflow-hidden flex flex-col my-auto max-h-[88vh] animate-in zoom-in-95 duration-150">
         {/* Header */}
         <div className="p-5 pb-4 flex items-center justify-between shrink-0">

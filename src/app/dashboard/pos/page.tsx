@@ -833,17 +833,44 @@ export default function PosTerminalPage() {
         }
     }, [receiptData, fetchLastReceipt, openThermalReceiptNewTab]);
 
+    const closeAllHeaderModals = useCallback(() => {
+        setIsShiftModalOpen(false);
+        setIsCashRegisterOpen(false);
+        setIsTodaySaleOpen(false);
+        setIsTodayProfitOpen(false);
+        setIsCalculatorOpen(false);
+        setIsCameraScannerOpen(false);
+    }, []);
+
     return (
         <div className="fixed inset-0 z-[60] flex flex-col bg-slate-100 overflow-hidden font-sans select-none">
             {/* Top Bar (Dreams POS Header Style) */}
             <PosHeader
-                onOpenShiftModal={() => setIsShiftModalOpen(true)}
-                onOpenCashRegisterModal={() => setIsCashRegisterOpen(true)}
-                onOpenTodaySaleModal={() => setIsTodaySaleOpen(true)}
-                onOpenTodayProfitModal={() => setIsTodayProfitOpen(true)}
-                onOpenCalculatorModal={() => setIsCalculatorOpen(true)}
+                onOpenShiftModal={() => {
+                    closeAllHeaderModals();
+                    setIsShiftModalOpen(true);
+                }}
+                onOpenCashRegisterModal={() => {
+                    closeAllHeaderModals();
+                    setIsCashRegisterOpen(true);
+                }}
+                onOpenTodaySaleModal={() => {
+                    closeAllHeaderModals();
+                    setIsTodaySaleOpen(true);
+                }}
+                onOpenTodayProfitModal={() => {
+                    closeAllHeaderModals();
+                    setIsTodayProfitOpen(true);
+                }}
+                onOpenCalculatorModal={() => {
+                    closeAllHeaderModals();
+                    setIsCalculatorOpen(true);
+                }}
                 onPrintLastReceipt={handlePrintLastReceipt}
-                onOpenCameraScanner={() => setIsCameraScannerOpen(true)}
+                onOpenCameraScanner={() => {
+                    closeAllHeaderModals();
+                    setIsCameraScannerOpen(true);
+                }}
                 onRefresh={() => {
                     refetchProducts();
                     refetchShiftSummary();

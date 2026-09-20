@@ -257,7 +257,7 @@ export function PosCameraScannerModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+    <div className="fixed top-16 inset-x-0 bottom-0 z-[90] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
       <div className="bg-slate-900 rounded-3xl w-full max-w-md shadow-2xl border border-slate-800 overflow-hidden flex flex-col my-auto max-h-[92dvh] animate-in zoom-in-95 duration-200">
         
         {/* Header - Cyber / Tech Barcode Scanner */}

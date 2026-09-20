@@ -118,7 +118,7 @@ export function PosCalculatorModal({ isOpen, onClose }: PosCalculatorModalProps)
 
   return (
     <div 
-      className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm overflow-y-auto p-4 sm:p-6"
+      className="fixed top-16 inset-x-0 bottom-0 z-[90] bg-black/60 backdrop-blur-sm overflow-y-auto p-4 sm:p-6"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
