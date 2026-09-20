@@ -160,7 +160,9 @@ const CategoriesBarClient = ({ categories: initialCategories }: { categories: an
 
                     {/* Horizontal Nav Items */}
                     <nav className="no-scrollbar flex flex-1 items-center gap-x-6 overflow-x-auto">
-                        {categories?.slice(0, 10).map((cat: any) => (
+                        {categories
+                            ?.filter((cat: any) => cat.showInNavbar !== false && cat.isActive !== false)
+                            .map((cat: any) => (
                             <Link
                                 key={cat._id}
                                 href={`/shop/${cat.slug}`}

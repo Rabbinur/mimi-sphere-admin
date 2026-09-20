@@ -38,6 +38,7 @@ interface TCategory {
     imageUrl?: string;
     bannerImage?: string;
     isActive?: boolean;
+    showInNavbar?: boolean;
     order?: number;
     sub_categories?: TCategory[];
 }
@@ -79,6 +80,7 @@ export default function CreateEditCategoryDialog({
     const [selectedBanner, setSelectedBanner] = useState<MediaFile | null>(null);
     const [order, setOrder] = useState<number | string>("");
     const [isActive, setIsActive] = useState<boolean>(true);
+    const [showInNavbar, setShowInNavbar] = useState<boolean>(true);
     const [internalOpen, setInternalOpen] = useState(false);
 
     // support controlled open (edit) or internal (create with trigger)
@@ -95,6 +97,7 @@ export default function CreateEditCategoryDialog({
             setParentId(categoryToEdit.parent_category_id ?? null);
             setOrder(typeof categoryToEdit.order === "number" ? categoryToEdit.order : "");
             setIsActive(categoryToEdit.isActive !== false);
+            setShowInNavbar(categoryToEdit.showInNavbar !== false);
 
             if (categoryToEdit.imageUrl) {
                 setSelectedImage({
@@ -131,6 +134,7 @@ export default function CreateEditCategoryDialog({
             setParentId(defaultParentId || null);
             setOrder("");
             setIsActive(true);
+            setShowInNavbar(true);
             setSelectedImage(null);
             setSelectedBanner(null);
         }
@@ -176,6 +180,7 @@ export default function CreateEditCategoryDialog({
             imageUrl: selectedImage?.url || "",
             bannerImage: selectedBanner?.url || "",
             isActive: Boolean(isActive),
+            showInNavbar: Boolean(showInNavbar),
         };
 
         if (parsedOrder !== undefined) {
@@ -308,8 +313,8 @@ export default function CreateEditCategoryDialog({
                         </p>
                     </div>
 
-                    {/* 🌟 Display Order & Storefront Visibility */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                    {/* 🌟 Display Order, Storefront Visibility & Navbar Visibility */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
                         <div>
                             <Label htmlFor="cat-order" className="text-xs font-semibold text-slate-700">
                                 Display Order
@@ -322,10 +327,10 @@ export default function CreateEditCategoryDialog({
                                 className="mt-1 bg-white"
                                 value={order}
                                 onChange={(e) => setOrder(e.target.value)}
-                                placeholder="Auto if empty (e.g. 1)"
+                                placeholder="Auto (e.g. 1)"
                             />
                             <p className="text-[10px] text-slate-400 mt-1">
-                                1 = highest priority on storefront.
+                                Priority on store.
                             </p>
                         </div>
 
@@ -335,7 +340,7 @@ export default function CreateEditCategoryDialog({
                             </Label>
                             <div className="flex items-center justify-between mt-1 h-9 px-3 bg-white border border-input rounded-md">
                                 <span className="text-xs font-medium text-slate-700">
-                                    {isActive ? "Active (Visible)" : "Hidden"}
+                                    {isActive ? "Active" : "Hidden"}
                                 </span>
                                 <Switch
                                     id="cat-active"
@@ -344,7 +349,26 @@ export default function CreateEditCategoryDialog({
                                 />
                             </div>
                             <p className="text-[10px] text-slate-400 mt-1">
-                                Toggle to show or hide from store.
+                                Entire store visibility.
+                            </p>
+                        </div>
+
+                        <div>
+                            <Label htmlFor="cat-navbar" className="text-xs font-semibold text-slate-700">
+                                Navbar Visibility
+                            </Label>
+                            <div className="flex items-center justify-between mt-1 h-9 px-3 bg-white border border-input rounded-md">
+                                <span className="text-xs font-medium text-slate-700">
+                                    {showInNavbar ? "Visible" : "Hidden"}
+                                </span>
+                                <Switch
+                                    id="cat-navbar"
+                                    checked={showInNavbar}
+                                    onCheckedChange={setShowInNavbar}
+                                />
+                            </div>
+                            <p className="text-[10px] text-slate-400 mt-1">
+                                Show in top navbar.
                             </p>
                         </div>
                     </div>

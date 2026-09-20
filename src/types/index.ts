@@ -103,7 +103,9 @@ export interface TCategory {
   description: string;
   parent_category_id: null | string;
   imageUrl: string;
+  bannerImage?: string;
   isActive: boolean;
+  showInNavbar?: boolean;
   order?: number;
   sub_categories?: TCategory[];
   createdAt: Date;

@@ -39,6 +39,7 @@ export interface TCategory {
     imageUrl?: string;
     bannerImage?: string;
     isActive: boolean;
+    showInNavbar?: boolean;
     order?: number;
     createdAt: Date | string;
     sub_categories?: TCategory[];
@@ -50,6 +51,7 @@ export default function CategoryManagementPage() {
     const [deleteCategory, { isLoading: deleting }] = useDeleteCategoryMutation();
     const [updateCategory] = useUpdateCategoryMutation();
     const [togglingId, setTogglingId] = useState<string | null>(null);
+    const [togglingNavbarId, setTogglingNavbarId] = useState<string | null>(null);
 
     const [editingCategory, setEditingCategory] = useState<TCategory | null>(null);
     const [editOpen, setEditOpen] = useState(false);
@@ -145,6 +147,28 @@ export default function CategoryManagementPage() {
         }
     };
 
+    const handleToggleNavbar = async (cat: TCategory) => {
+        const nextStatus = cat.showInNavbar === false ? true : false;
+        setTogglingNavbarId(cat._id);
+        try {
+            const res = await updateCategory({
+                id: cat._id,
+                data: { showInNavbar: nextStatus },
+            }).unwrap();
+
+            if (res.statusCode === 200 || res.success) {
+                toast.success(`Category "${cat.name}" is now ${nextStatus ? "Visible in Navbar" : "Hidden from Navbar"}`);
+                refetch();
+            } else {
+                toast.error(res.message || "Failed to update navbar status");
+            }
+        } catch (error: any) {
+            toast.error(error?.data?.message || "Failed to update navbar visibility");
+        } finally {
+            setTogglingNavbarId(null);
+        }
+    };
+
     const handleDelete = async (id: string, name: string) => {
         if (!confirm(`Are you sure you want to delete category "${name}"?`)) return;
 
@@ -236,6 +260,7 @@ export default function CategoryManagementPage() {
                                         <TableHead>Thumbnail</TableHead>
                                         <TableHead>Banner</TableHead>
                                         <TableHead className="text-center">Visibility</TableHead>
+                                        <TableHead className="text-center">Navbar</TableHead>
                                         <TableHead>Created</TableHead>
                                         <TableHead className="text-right">Actions</TableHead>
                                     </TableRow>
@@ -330,6 +355,19 @@ export default function CategoryManagementPage() {
                                                         </div>
                                                     </TableCell>
 
+                                                    <TableCell className="text-center">
+                                                        <div className="inline-flex items-center justify-center gap-2">
+                                                            <Switch
+                                                                checked={cat.showInNavbar !== false}
+                                                                disabled={togglingNavbarId === cat._id}
+                                                                onCheckedChange={() => handleToggleNavbar(cat)}
+                                                            />
+                                                            <span className={`text-[11px] font-semibold w-12 text-left ${cat.showInNavbar !== false ? "text-indigo-600" : "text-slate-400"}`}>
+                                                                {cat.showInNavbar !== false ? "Visible" : "Hidden"}
+                                                            </span>
+                                                        </div>
+                                                    </TableCell>
+
                                                     <TableCell className="text-xs text-slate-500">
                                                         {formatDate(cat.createdAt)}
                                                     </TableCell>
@@ -367,7 +405,7 @@ export default function CategoryManagementPage() {
                                         })
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={8} className="text-center py-8 text-slate-500">
+                                            <TableCell colSpan={9} className="text-center py-8 text-slate-500">
                                                 No categories found.
                                             </TableCell>
                                         </TableRow>
