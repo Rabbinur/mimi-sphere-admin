@@ -72,6 +72,38 @@ export const posApi = baseApi.injectEndpoints({
       query: (data) => ({ url: "/admin/pos/membership-settings", method: "PUT", body: data }),
       invalidatesTags: ["order"],
     }),
+    getPosOrdersList: builder.query<
+      any,
+      { status?: string; search?: string; page?: number; per_page?: number } | void
+    >({
+      query: (params) => {
+        const q = new URLSearchParams();
+        if (params) {
+          if (params.status) q.append("status", params.status);
+          if (params.search) q.append("search", params.search);
+          if (params.page) q.append("page", String(params.page));
+          if (params.per_page) q.append("per_page", String(params.per_page));
+        }
+        return `/admin/pos/orders-list?${q.toString()}`;
+      },
+      providesTags: ["order"],
+    }),
+    getPosTransactions: builder.query<
+      any,
+      { type?: string; search?: string; page?: number; per_page?: number } | void
+    >({
+      query: (params) => {
+        const q = new URLSearchParams();
+        if (params) {
+          if (params.type) q.append("type", params.type);
+          if (params.search) q.append("search", params.search);
+          if (params.page) q.append("page", String(params.page));
+          if (params.per_page) q.append("per_page", String(params.per_page));
+        }
+        return `/admin/pos/transactions?${q.toString()}`;
+      },
+      providesTags: ["order"],
+    }),
   }),
 });
 
@@ -88,4 +120,6 @@ export const {
   useGetCustomerHistoryQuery,
   useGetMembershipSettingsQuery,
   useUpdateMembershipSettingsMutation,
+  useGetPosOrdersListQuery,
+  useGetPosTransactionsQuery,
 } = posApi;

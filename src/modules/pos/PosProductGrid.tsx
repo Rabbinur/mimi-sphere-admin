@@ -9,7 +9,10 @@ import {
   Layers,
   Package,
   Plus,
+  RefreshCw,
+  RotateCcw,
   Search,
+  ShoppingCart,
   Zap,
 } from "lucide-react";
 import { getImageUrl } from "@/lib/api";
@@ -30,6 +33,9 @@ interface PosProductGridProps {
   categories: any[];
   selectedCategory: string | number | null;
   onSelectCategory: (catId: string | number | null) => void;
+  onOpenOrdersModal?: () => void;
+  onResetCart?: () => void;
+  onOpenTransactionsModal?: () => void;
 }
 
 export function PosProductGrid({
@@ -48,6 +54,9 @@ export function PosProductGrid({
   categories,
   selectedCategory,
   onSelectCategory,
+  onOpenOrdersModal,
+  onResetCart,
+  onOpenTransactionsModal,
 }: PosProductGridProps) {
   const [manualBarcodeInput, setManualBarcodeInput] = useState("");
 
@@ -71,8 +80,39 @@ export function PosProductGrid({
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F4F6F9] border-r border-slate-200">
-      {/* Top Controls: Search Bar & Scanner Status */}
-      <div className="p-2.5 sm:p-3 bg-white border-b border-slate-200/90 space-y-2 shrink-0 shadow-xs">
+      {/* Top Controls: Dreams POS Action Bar (View Orders | Reset | Transaction) + Search */}
+      <div className="p-2.5 sm:p-3 bg-white border-b border-slate-200/90 space-y-2.5 shrink-0 shadow-xs">
+        {/* Quick Action Bar matching Dreams POS Image 1 */}
+        <div className="flex items-center gap-2 pb-0.5">
+          <button
+            type="button"
+            onClick={() => onOpenOrdersModal ? onOpenOrdersModal() : null}
+            className="px-3.5 py-1.5 rounded-lg bg-[#009688] hover:bg-[#00897b] active:scale-95 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            title="View Recent POS Orders"
+          >
+            <ShoppingCart className="w-3.5 h-3.5" />
+            <span>View Orders</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onResetCart ? onResetCart() : null}
+            className="px-3.5 py-1.5 rounded-lg bg-[#4f46e5] hover:bg-[#4338ca] active:scale-95 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            title="Reset Cart & Start Fresh"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Reset</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onOpenTransactionsModal ? onOpenTransactionsModal() : null}
+            className="px-3.5 py-1.5 rounded-lg bg-[#2563eb] hover:bg-[#1d4ed8] active:scale-95 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            title="Recent Transactions & Payments"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Transaction</span>
+          </button>
+        </div>
+
         <div className="flex items-center gap-2">
           {/* Main Search Bar with embedded SCAN READY badge */}
           <div className="relative flex-1 flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus-within:border-blue-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/10 transition-all">

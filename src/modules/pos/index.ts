@@ -14,3 +14,5 @@ export * from "./PosTodayProfitModal";
 export * from "./PosCalculatorModal";
 export * from "./PosVariantModal";
 export * from "./PosCameraScannerModal";
+export * from "./PosOrdersModal";
+export * from "./PosTransactionsModal";

@@ -14,6 +14,8 @@ import {
     PosCalculatorModal,
     PosVariantModal,
     PosCameraScannerModal,
+    PosOrdersModal,
+    PosTransactionsModal,
     playBeepSound,
     usePosCart,
     useBarcodeScanner,
@@ -78,6 +80,8 @@ export default function PosTerminalPage() {
     const [isTodaySaleOpen, setIsTodaySaleOpen] = useState(false);
     const [isTodayProfitOpen, setIsTodayProfitOpen] = useState(false);
     const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
+    const [isOrdersModalOpen, setIsOrdersModalOpen] = useState(false);
+    const [isTransactionsModalOpen, setIsTransactionsModalOpen] = useState(false);
     const [selectedBranch, setSelectedBranch] = useState("Freshmart");
 
     // Fetch Shift Summary Data for Statistics
@@ -833,6 +837,14 @@ export default function PosTerminalPage() {
         }
     }, [receiptData, fetchLastReceipt, openThermalReceiptNewTab]);
 
+    const handleResetCart = useCallback(() => {
+        clearCart();
+        selectCustomer(null);
+        setGlobalDiscount({ type: "fixed", value: 0 });
+        playBeepSound(600);
+        toast.success("POS Cart reset successfully!");
+    }, [clearCart, selectCustomer, setGlobalDiscount]);
+
     const closeAllHeaderModals = useCallback(() => {
         setIsShiftModalOpen(false);
         setIsCashRegisterOpen(false);
@@ -840,6 +852,8 @@ export default function PosTerminalPage() {
         setIsTodayProfitOpen(false);
         setIsCalculatorOpen(false);
         setIsCameraScannerOpen(false);
+        setIsOrdersModalOpen(false);
+        setIsTransactionsModalOpen(false);
     }, []);
 
     return (
@@ -899,6 +913,15 @@ export default function PosTerminalPage() {
                     categories={Array.isArray(categoriesList) ? categoriesList : []}
                     selectedCategory={selectedCategory}
                     onSelectCategory={setSelectedCategory}
+                    onOpenOrdersModal={() => {
+                        closeAllHeaderModals();
+                        setIsOrdersModalOpen(true);
+                    }}
+                    onResetCart={handleResetCart}
+                    onOpenTransactionsModal={() => {
+                        closeAllHeaderModals();
+                        setIsTransactionsModalOpen(true);
+                    }}
                 />
 
                 {/* Desktop Cart Sidebar (hidden on mobile/tablet) */}
@@ -1064,6 +1087,25 @@ export default function PosTerminalPage() {
             <PosCalculatorModal
                 isOpen={isCalculatorOpen}
                 onClose={() => setIsCalculatorOpen(false)}
+            />
+
+            {/* Dreams POS 3-Buttons Modals (View Orders & Transactions) */}
+            <PosOrdersModal
+                isOpen={isOrdersModalOpen}
+                onClose={() => setIsOrdersModalOpen(false)}
+                onPrintReceipt={(orderReceipt) => {
+                    setReceiptData(orderReceipt);
+                    setIsReceiptOpen(true);
+                    openThermalReceiptNewTab(orderReceipt);
+                }}
+            />
+
+            <PosTransactionsModal
+                isOpen={isTransactionsModalOpen}
+                onClose={() => setIsTransactionsModalOpen(false)}
+                onViewReceipt={(refNumber) => {
+                    toast.info(`Checking receipt for transaction #${refNumber}`);
+                }}
             />
         </div>
     );

@@ -100,7 +100,7 @@ export function PosHeader({
   };
 
   return (
-    <header className="h-16 bg-white text-slate-800 px-3 sm:px-5 flex items-center justify-between shadow-xs select-none border-b border-slate-200 relative z-[100] shrink-0 gap-2">
+    <header className="h-16 bg-white text-slate-800 px-3 sm:px-5 flex items-center justify-between shadow-xs select-none border-b border-slate-200 relative z-20 shrink-0 gap-2">
       {/* ─── Left Section: Brand Logo + Teal Live Timer + Purple Dashboard Button ─── */}
       <div className="flex items-center gap-2.5 sm:gap-3.5 shrink-0">
         {/* Back to Dashboard Button */}
