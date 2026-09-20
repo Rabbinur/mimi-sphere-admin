@@ -229,6 +229,17 @@ export interface TBentoGrid {
   items: TBentoItem[];
 }
 
+export interface TExitIntentPopup {
+  isEnabled: boolean;
+  title: string;
+  subtitle: string;
+  voucherCode: string;
+  discountText: string;
+  expiryMinutes: number;
+  ctaText: string;
+  declineText: string;
+}
+
 export interface TCMS {
   company: TCompany;
   social: TSocial;
@@ -241,6 +252,7 @@ export interface TCMS {
     title?: string;
     subtitle?: string;
   };
+  exitIntentPopup?: TExitIntentPopup;
 }
 
 export interface TDashboardOverview {
