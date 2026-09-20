@@ -26,16 +26,16 @@ export function PosTodaySaleModal({
   };
 
   const rows = [
-    { label: "Total Sale Amount", value: formatAmount(totalSales), bg: "bg-slate-50" },
-    { label: "Cash Payment", value: formatAmount(cashSales), bg: "bg-white" },
-    { label: "Credit Card Payment", value: formatAmount(cardSales), bg: "bg-slate-50" },
-    { label: "Cheque Payment:", value: formatAmount(0), bg: "bg-white" },
-    { label: "Deposit Payment", value: formatAmount(Number(shiftData?.deposit_payment || 0)), bg: "bg-slate-50" },
-    { label: "Points Payment", value: formatAmount(0), bg: "bg-white" },
-    { label: "Gift Card Payment", value: formatAmount(0), bg: "bg-slate-50" },
-    { label: "Scan & Pay", value: formatAmount(digitalSales), bg: "bg-white" },
-    { label: "Pay Later", value: formatAmount(0), bg: "bg-slate-50" },
-    { label: "Total Payment", value: formatAmount(totalSales), bg: "bg-slate-100", isHighlight: true },
+    { label: "Total Sale Amount", bangla: "আজকের মোট বিক্রি", value: formatAmount(totalSales), bg: "bg-slate-50" },
+    { label: "Cash Payment", bangla: "নগদ ক্যাশ গ্রহণ", value: formatAmount(cashSales), bg: "bg-white" },
+    { label: "Credit Card Payment", bangla: "কার্ডে পেমেন্ট", value: formatAmount(cardSales), bg: "bg-slate-50" },
+    { label: "Cheque Payment", bangla: "চেক পেমেন্ট", value: formatAmount(0), bg: "bg-white" },
+    { label: "Deposit Payment", bangla: "অগ্রিম / ডিপোজিট", value: formatAmount(Number(shiftData?.deposit_payment || 0)), bg: "bg-slate-50" },
+    { label: "Points Payment", bangla: "পয়েন্ট দিয়ে পরিশোধ", value: formatAmount(0), bg: "bg-white" },
+    { label: "Gift Card Payment", bangla: "গিফট কার্ড", value: formatAmount(0), bg: "bg-slate-50" },
+    { label: "Scan & Pay", bangla: "বিকাশ / নগদ / এমএফএস", value: formatAmount(digitalSales), bg: "bg-white" },
+    { label: "Pay Later", bangla: "বাকি / পরে পরিশোধ", value: formatAmount(0), bg: "bg-slate-50" },
+    { label: "Total Payment", bangla: "মোট সংগৃহীত টাকা", value: formatAmount(totalSales), bg: "bg-slate-100", isHighlight: true },
   ];
 
   return (
@@ -52,9 +52,14 @@ export function PosTodaySaleModal({
         >
           {/* Header */}
           <div className="px-6 py-4 flex items-center justify-between border-b border-slate-100 shrink-0 bg-white">
-            <h3 className="text-base font-bold text-slate-800">
-              Today's Sale
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-bold text-slate-800">
+                Today's Sale
+              </h3>
+              <span className="text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                আজকের বিক্রি বিবরণী
+              </span>
+            </div>
           <button
             type="button"
             onClick={onClose}
@@ -75,10 +80,15 @@ export function PosTodaySaleModal({
                   row.isHighlight ? "font-bold text-slate-900 font-mono" : "text-slate-700"
                 }`}
               >
-                <span className={row.isHighlight ? "font-bold text-slate-900" : "text-slate-600 font-medium"}>
-                  {row.label}
-                </span>
-                <span className={`font-mono ${row.isHighlight ? "font-black text-slate-950 text-sm" : "font-semibold text-slate-800"}`}>
+                <div className="flex flex-col sm:flex-row sm:items-baseline gap-0.5 sm:gap-1.5">
+                  <span className={row.isHighlight ? "font-bold text-slate-950" : "text-slate-800 font-semibold"}>
+                    {row.label}
+                  </span>
+                  <span className="text-[11px] text-slate-500 font-medium font-sans">
+                    ({row.bangla})
+                  </span>
+                </div>
+                <span className={`font-mono shrink-0 ml-3 ${row.isHighlight ? "font-black text-slate-950 text-sm" : "font-semibold text-slate-800"}`}>
                   {row.value}
                 </span>
               </div>

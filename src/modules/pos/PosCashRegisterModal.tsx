@@ -33,13 +33,13 @@ export function PosCashRegisterModal({
   };
 
   const rows = [
-    { label: "Cash in Hand", value: formatAmount(cashInHand), bg: "bg-slate-50" },
-    { label: "Total Sale Amount", value: formatAmount(totalSales), bg: "bg-white" },
-    { label: "Total Payment", value: formatAmount(totalPayment), bg: "bg-slate-50" },
-    { label: "Cash Payment", value: formatAmount(cashSales), bg: "bg-white" },
-    { label: "Total Sale Return", value: formatAmount(totalSaleReturn), bg: "bg-slate-50" },
-    { label: "Total Expense", value: formatAmount(totalExpense), bg: "bg-white" },
-    { label: "Total Cash", value: formatAmount(totalCash), bg: "bg-slate-200/80", isHighlight: true },
+    { label: "Cash in Hand", bangla: "কাউন্টার ক্যাশে জমা টাকা", value: formatAmount(cashInHand), bg: "bg-slate-50" },
+    { label: "Total Sale Amount", bangla: "আজকের মোট বিক্রি", value: formatAmount(totalSales), bg: "bg-white" },
+    { label: "Total Payment", bangla: "মোট সংগৃহীত পেমেন্ট", value: formatAmount(totalPayment), bg: "bg-slate-50" },
+    { label: "Cash Payment", bangla: "নগদ ক্যাশ গ্রহণ", value: formatAmount(cashSales), bg: "bg-white" },
+    { label: "Total Sale Return", bangla: "ফেরত পণ্যের মূল্য", value: formatAmount(totalSaleReturn), bg: "bg-slate-50" },
+    { label: "Total Expense", bangla: "দোকানের আজকের খরচ", value: formatAmount(totalExpense), bg: "bg-white" },
+    { label: "Total Cash", bangla: "ড্রয়ারে অবশিষ্ট নিট ক্যাশ", value: formatAmount(totalCash), bg: "bg-slate-200/80", isHighlight: true },
   ];
 
   return (
@@ -56,9 +56,14 @@ export function PosCashRegisterModal({
         >
           {/* Header */}
           <div className="px-6 py-4 flex items-center justify-between border-b border-slate-100 shrink-0 bg-white">
-            <h3 className="text-base font-bold text-slate-800">
-              Cash Register Details
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-bold text-slate-800">
+                Cash Register Details
+              </h3>
+              <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                ক্যাশ ড্রয়ার হিসাব
+              </span>
+            </div>
           <button
             type="button"
             onClick={onClose}
@@ -79,10 +84,15 @@ export function PosCashRegisterModal({
                   row.isHighlight ? "font-bold text-slate-900 font-mono" : "text-slate-700"
                 }`}
               >
-                <span className={row.isHighlight ? "font-bold text-slate-900" : "text-slate-600 font-medium"}>
-                  {row.label}
-                </span>
-                <span className={`font-mono ${row.isHighlight ? "font-black text-slate-950 text-sm" : "font-semibold text-slate-800"}`}>
+                <div className="flex flex-col sm:flex-row sm:items-baseline gap-0.5 sm:gap-1.5">
+                  <span className={row.isHighlight ? "font-bold text-slate-950" : "text-slate-800 font-semibold"}>
+                    {row.label}
+                  </span>
+                  <span className="text-[11px] text-slate-500 font-medium font-sans">
+                    ({row.bangla})
+                  </span>
+                </div>
+                <span className={`font-mono shrink-0 ml-3 ${row.isHighlight ? "font-black text-slate-950 text-sm" : "font-semibold text-slate-800"}`}>
                   {row.value}
                 </span>
               </div>

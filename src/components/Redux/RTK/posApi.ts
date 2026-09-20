@@ -33,7 +33,16 @@ export const posApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["products", "order"],
     }),
-    getPosShiftSummary: builder.query<any, { channel?: string; date?: string } | void>({
+    getPosShiftSummary: builder.query<any, { date?: string } | void>({
+      query: (params) => {
+        const q = new URLSearchParams();
+        if (params?.date) q.append("date", params.date);
+        const qs = q.toString();
+        return `/admin/pos/shift-summary${qs ? `?${qs}` : ""}`;
+      },
+      providesTags: ["order"],
+    }),
+    getPosTodayProfit: builder.query<any, { channel?: string; date?: string } | void>({
       query: (params) => {
         const q = new URLSearchParams();
         if (params && typeof params === "object") {
@@ -41,7 +50,7 @@ export const posApi = baseApi.injectEndpoints({
           if (params.date) q.append("date", params.date);
         }
         const qs = q.toString();
-        return `/admin/pos/shift-summary${qs ? `?${qs}` : ""}`;
+        return `/admin/pos/today-profit${qs ? `?${qs}` : ""}`;
       },
       providesTags: ["order"],
     }),
@@ -187,4 +196,5 @@ export const {
   useCreatePosExpenseMutation,
   useGetPosExpensesQuery,
   useDeletePosExpenseMutation,
+  useGetPosTodayProfitQuery,
 } = posApi;
