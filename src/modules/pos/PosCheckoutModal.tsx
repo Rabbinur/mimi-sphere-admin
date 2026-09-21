@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { useCreatePosOrderMutation } from "@/components/Redux/RTK/posApi";
 import { toast } from "sonner";
+import { posOfflineSync } from "./utils/posOfflineSync";
+
 
 interface PosCheckoutModalProps {
   isOpen: boolean;
@@ -105,6 +107,44 @@ export function PosCheckoutModal({
       note: note.trim() || undefined,
     };
 
+    const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
+
+    // 1. Direct Offline Processing if network is disconnected
+    if (isOffline) {
+      try {
+        const offlineId = await posOfflineSync.queueOfflineOrder(payload);
+        const offlineReceipt: PosReceiptData = {
+          order_id: offlineId,
+          order_number: offlineId,
+          receipt_number: offlineId,
+          customer_name: payload.customer_name,
+          customer_phone: payload.customer_phone,
+          customer_email: payload.customer_email,
+          membership_tier: payload.membership_tier,
+          items: payload.items,
+          subtotal: payload.subtotal,
+          discount: payload.discount,
+          tax: payload.tax || 0,
+          total: payload.total,
+          payment_method: payload.payment_method,
+          tendered_amount: payload.tendered_amount,
+          change_amount: payload.change_amount,
+          created_at: new Date().toLocaleString("en-GB"),
+        };
+
+        toast.warning(
+          "⚠️ অফলাইন মোড: সেলটি ডিভাইসে সেভ হয়েছে এবং রসিদ প্রিন্ট হচ্ছে! নেট আসলে অটো-সিঙ্ক হবে।"
+        );
+        onSuccess(offlineReceipt);
+        return;
+      } catch (e) {
+        console.error("Offline queue failed:", e);
+        toast.error("ডিভাইসে অফলাইন অর্ডার সেভ করতে সমস্যা হয়েছে");
+        return;
+      }
+    }
+
+    // 2. Online processing with automatic offline fallback on network failure
     try {
       const res = await createPosOrder(payload).unwrap();
       const receipt = res?.data || res;
@@ -112,9 +152,41 @@ export function PosCheckoutModal({
       onSuccess(receipt);
     } catch (err: any) {
       console.error("POS Checkout error:", err);
+      // If network went down mid-request
+      if (err?.status === "FETCH_ERROR" || err?.message?.includes("fetch") || !navigator.onLine) {
+        try {
+          const offlineId = await posOfflineSync.queueOfflineOrder(payload);
+          const offlineReceipt: PosReceiptData = {
+            order_id: offlineId,
+            order_number: offlineId,
+            receipt_number: offlineId,
+            customer_name: payload.customer_name,
+            customer_phone: payload.customer_phone,
+            customer_email: payload.customer_email,
+            membership_tier: payload.membership_tier,
+            items: payload.items,
+            subtotal: payload.subtotal,
+            discount: payload.discount,
+            tax: payload.tax || 0,
+            total: payload.total,
+            payment_method: payload.payment_method,
+            tendered_amount: payload.tendered_amount,
+            change_amount: payload.change_amount,
+            created_at: new Date().toLocaleString("en-GB"),
+          };
+
+          toast.warning(
+            "⚠️ নেটওয়ার্ক সমস্যা: সেলটি ডিভাইসে সেভ হয়েছে! ইন্টারনেট কানেকশন পেলেই অটো-সিঙ্ক হবে।"
+          );
+          onSuccess(offlineReceipt);
+          return;
+        } catch {}
+      }
       toast.error(err?.data?.message || "Failed to process POS order");
     }
+
   };
+
 
   return (
     <div

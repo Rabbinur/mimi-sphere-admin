@@ -30,6 +30,8 @@ import {
 } from "@/components/Redux/RTK/posApi";
 import { useAllCategoryQuery } from "@/components/Redux/RTK/categoryApi";
 import { toast } from "sonner";
+import { posOfflineSync } from "@/modules/pos/utils/posOfflineSync";
+
 
 export default function PosTerminalPage() {
     // POS Cart State Management Hook
@@ -151,10 +153,16 @@ export default function PosTerminalPage() {
         if (currPage === page) {
             if (page === 1) {
                 setAllProducts(itemsList);
+                if (itemsList.length > 0) {
+                    posOfflineSync.cacheProductsLocally(itemsList);
+                }
             } else {
                 setAllProducts((prev) => {
                     const existingKeys = new Set(prev.map((i) => i.product_id));
                     const uniqueNew = itemsList.filter((i) => !existingKeys.has(i.product_id));
+                    if (uniqueNew.length > 0) {
+                        posOfflineSync.cacheProductsLocally(uniqueNew);
+                    }
                     return [...prev, ...uniqueNew];
                 });
             }
@@ -166,6 +174,19 @@ export default function PosTerminalPage() {
             }
         }
     }, [productsData, page]);
+
+    // Offline product fallback load when internet is disconnected on initial load
+    useEffect(() => {
+        if (typeof navigator !== "undefined" && !navigator.onLine && allProducts.length === 0) {
+            posOfflineSync.getCachedProducts().then((cached) => {
+                if (cached && cached.length > 0) {
+                    setAllProducts(cached);
+                    toast.info(`অফলাইন মোড: ক্যাশ থেকে ${cached.length}টি প্রোডাক্ট লোড করা হয়েছে`);
+                }
+            });
+        }
+    }, [allProducts.length]);
+
 
     const handleLoadMore = useCallback(() => {
         if (hasMore && !isProductsFetching) {

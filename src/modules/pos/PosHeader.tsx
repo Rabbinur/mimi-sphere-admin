@@ -20,9 +20,12 @@ import {
   ShieldCheck,
   Globe,
   FileSpreadsheet,
+  FileText,
 } from "lucide-react";
 import { useAppSelector } from "@/components/Redux/hooks";
 import { useCurrentUserInfo } from "@/components/Redux/Slice/authSlice";
+import { PosNetworkStatusBadge } from "./PosNetworkStatusBadge";
+
 
 interface PosHeaderProps {
   onOpenShiftModal: () => void;
@@ -145,7 +148,13 @@ export function PosHeader({
           <Globe className="w-4 h-4 shrink-0" />
           <span className="hidden sm:inline">Dashboard</span>
         </Link>
+
+        {/* Offline / Online Network Sync Badge */}
+        <div className="shrink-0 hidden md:block">
+          <PosNetworkStatusBadge />
+        </div>
       </div>
+
 
       {/* ─── Center: Hardware Scanner Toast / Status ─── */}
       <div className="hidden xl:flex flex-1 justify-center items-center px-2 min-w-0">
@@ -307,6 +316,22 @@ export function PosHeader({
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#0f172a]" />
           </div>
         </div>
+
+        {/* 6.5 Full Reports & Analysis */}
+        <div className="relative group/tip flex items-center">
+          <Link
+            href="/dashboard/reports"
+            className="w-9 h-9 border border-rose-300 bg-rose-50 hover:bg-rose-100 active:scale-95 text-rose-700 rounded-xl flex items-center justify-center transition-all shadow-2xs cursor-pointer shrink-0"
+          >
+            <FileText className="w-4 h-4 stroke-[2.2]" />
+          </Link>
+          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2.5 py-1 bg-[#0f172a] text-white text-[11px] font-bold rounded-lg shadow-xl whitespace-nowrap opacity-0 pointer-events-none group-hover/tip:opacity-100 transition-opacity z-50 flex flex-col items-center">
+            <span>Sales & Profit Reports</span>
+            <span className="text-[9.5px] text-rose-300 font-normal">পূর্ণাঙ্গ রিপোর্ট</span>
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#0f172a]" />
+          </div>
+        </div>
+
 
         {/* 7. Settings Button */}
         <div className="relative group/tip flex items-center">

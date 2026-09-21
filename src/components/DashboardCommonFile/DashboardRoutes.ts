@@ -80,6 +80,11 @@ export const dashboardRoutes: DashboardRoute[] = [
       { href: "/dashboard/orders/checkout-recovery", label: "Checkout Recovery" },
     ],
   },
+  {
+    href: "/dashboard/reports",
+    icon: BarChart3,
+    label: "Reports & Analysis",
+  },
 
   {
     href: "/dashboard/customers",
