@@ -17,6 +17,8 @@ import {
   Store,
   Globe,
   X,
+  CreditCard,
+  ShoppingBasket,
 } from "lucide-react";
 import Pagination from "@/components/Common/Pagination";
 import { useGetProductSalesReportQuery } from "@/components/Redux/RTK/reportsApi";
@@ -66,6 +68,10 @@ export default function SalesReportPage() {
   const summary = salesReportResponse?.summary || {
     total_sold_qty: 0,
     total_sold_amount: 0,
+    total_online_qty: 0,
+    total_online_amount: 0,
+    total_pos_qty: 0,
+    total_pos_amount: 0,
     total_products_count: 0,
   };
 
@@ -76,17 +82,33 @@ export default function SalesReportPage() {
     })}`;
   };
 
-  // 1. Export CSV / Excel
+  // Export CSV / Excel
   const handleExportExcel = () => {
     try {
-      const headers = ["SKU", "Product Name", "Brand", "Category", "Sold Qty", "Sold Amount", "Instock Qty"];
+      const headers = [
+        "SKU",
+        "Product Name",
+        "Brand",
+        "Category",
+        "Total Sold Qty",
+        "Online Qty",
+        "POS Qty",
+        "Total Sold Amount",
+        "Online Amount",
+        "POS Amount",
+        "Instock Qty",
+      ];
       const rows = reportData.map((item: any) => [
         `"${item.sku}"`,
-        `"${item.product_name.replace(/"/g, '""')}"`,
+        `"${(item.product_name || "").replace(/"/g, '""')}"`,
         `"${item.brand}"`,
         `"${item.category}"`,
         item.sold_qty,
+        item.online_qty || 0,
+        item.pos_qty || 0,
         item.sold_amount,
+        item.online_amount || 0,
+        item.pos_amount || 0,
         item.instock_qty,
       ]);
 
@@ -94,60 +116,63 @@ export default function SalesReportPage() {
         "data:text/csv;charset=utf-8,\uFEFF" +
         [
           ["MIMI SPHERE - Sales Report"],
+          [`Channel Filter: ${selectedChannel.toUpperCase()}`],
           [`Date Range: ${startDate || "All-time"} to ${endDate || "Present"}`],
-          [`Channel: ${selectedChannel.toUpperCase()}`],
           [""],
           headers,
           ...rows,
         ]
-          .map((e) => e.join(","))
+          .map((e) => (Array.isArray(e) ? e.join(",") : e))
           .join("\n");
 
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
       link.setAttribute("href", encodedUri);
-      link.setAttribute("download", `mimi_sphere_sales_report_${Date.now()}.csv`);
+      link.setAttribute(
+        "download",
+        `mimi_sphere_sales_report_${selectedChannel}_${new Date().toISOString().split("T")[0]}.csv`
+      );
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      toast.success("Excel / CSV report exported successfully!");
-    } catch {
-      toast.error("Failed to export report");
+      toast.success("Sales report exported successfully!");
+    } catch (err) {
+      toast.error("Failed to export Excel report.");
     }
   };
 
-  // 2. Export / Print PDF
   const handlePrint = () => {
     window.print();
   };
 
-  // Reset Filters
-  const handleResetFilters = () => {
-    setSearchTerm("");
-    setSelectedCategory("");
-    setSelectedChannel("all");
-    setStartDate("");
-    setEndDate("");
-    setCurrentPage(1);
-    toast.info("Filters reset to default");
-  };
-
   return (
     <div className="space-y-6">
-      {/* ─── Top Main Card Container ─── */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
-        {/* Card Header matching reference image */}
-        <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* ─── Main White Card Container ─── */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        {/* Top Header */}
+        <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">
-              Sales Report
-            </h1>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
-              বিক্রিত পণ্যের বিবরণী ও ইনভেন্টরি স্টক রিপোর্ট
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">
+                Sales Report
+              </h1>
+              {selectedChannel === "online" && (
+                <span className="bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                  Online Store Only
+                </span>
+              )}
+              {selectedChannel === "pos" && (
+                <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                  POS Counter Only
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-500 mt-1 font-medium">
+              Manage your sales, product volume, online orders vs POS counter turnover
             </p>
           </div>
 
-          {/* Action Export Buttons (Matching user screenshot: PDF, XLS, Print) */}
+          {/* Action Export Buttons */}
           <div className="flex items-center gap-2 self-start sm:self-auto">
             {/* PDF Button */}
             <button
@@ -181,40 +206,139 @@ export default function SalesReportPage() {
           </div>
         </div>
 
-        {/* ─── Summary Badges Bar ─── */}
-        <div className="px-5 sm:px-6 py-3 bg-slate-50/70 border-b border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-emerald-100/70 text-emerald-700 flex items-center justify-center shrink-0">
-              <ShoppingBag className="w-4 h-4" />
+        {/* ─── Online vs POS Channel Tabs (Requested by User) ─── */}
+        <div className="px-5 sm:px-6 pt-3 border-b border-slate-200 bg-slate-50/50 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedChannel("all");
+              setCurrentPage(1);
+            }}
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold rounded-t-xl border-b-2 transition-all cursor-pointer ${
+              selectedChannel === "all"
+                ? "border-[#f97316] text-[#f97316] bg-white shadow-xs"
+                : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            <Globe className="w-4 h-4 text-slate-500" />
+            <span>All Sales (সব সেলস)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedChannel("online");
+              setCurrentPage(1);
+            }}
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold rounded-t-xl border-b-2 transition-all cursor-pointer ${
+              selectedChannel === "online"
+                ? "border-blue-600 text-blue-600 bg-white shadow-xs"
+                : "border-transparent text-slate-600 hover:text-blue-700 hover:bg-slate-100"
+            }`}
+          >
+            <ShoppingBasket className="w-4 h-4 text-blue-500" />
+            <span>Online Orders (অনলাইন শপ)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedChannel("pos");
+              setCurrentPage(1);
+            }}
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold rounded-t-xl border-b-2 transition-all cursor-pointer ${
+              selectedChannel === "pos"
+                ? "border-emerald-600 text-emerald-600 bg-white shadow-xs"
+                : "border-transparent text-slate-600 hover:text-emerald-700 hover:bg-slate-100"
+            }`}
+          >
+            <Store className="w-4 h-4 text-emerald-500" />
+            <span>POS Counter (দোকানের কাউন্টার)</span>
+          </button>
+        </div>
+
+        {/* ─── Summary Badges Bar with Channel Breakdown ─── */}
+        <div className="px-5 sm:px-6 py-4 bg-slate-50/70 border-b border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Total Sold Qty */}
+          <div className="flex items-start gap-3 bg-white p-3 rounded-xl border border-slate-200/60 shadow-2xs">
+            <div
+              className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                selectedChannel === "pos"
+                  ? "bg-emerald-100 text-emerald-700"
+                  : selectedChannel === "online"
+                  ? "bg-blue-100 text-blue-700"
+                  : "bg-emerald-100/70 text-emerald-700"
+              }`}
+            >
+              <ShoppingBag className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[11px] font-bold text-slate-500 uppercase block">Total Sold Qty</span>
-              <span className="text-base font-black font-mono text-emerald-600">
+              <span className="text-[11px] font-bold text-slate-500 uppercase block">
+                {selectedChannel === "online"
+                  ? "Online Sold Qty"
+                  : selectedChannel === "pos"
+                  ? "POS Counter Sold Qty"
+                  : "Total Sold Qty"}
+              </span>
+              <span className="text-lg font-black font-mono text-emerald-600 block">
                 {summary.total_sold_qty.toLocaleString("en-US")} units
               </span>
+              {selectedChannel === "all" && (
+                <div className="flex items-center gap-2 mt-1 text-[11px] font-medium text-slate-500">
+                  <span className="text-blue-600">Online: {summary.total_online_qty || 0}</span>
+                  <span>•</span>
+                  <span className="text-emerald-600">POS: {summary.total_pos_qty || 0}</span>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-indigo-100/70 text-indigo-700 flex items-center justify-center shrink-0">
-              <TrendingUp className="w-4 h-4" />
+          {/* Total Sold Amount */}
+          <div className="flex items-start gap-3 bg-white p-3 rounded-xl border border-slate-200/60 shadow-2xs">
+            <div
+              className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                selectedChannel === "pos"
+                  ? "bg-emerald-100 text-emerald-700"
+                  : selectedChannel === "online"
+                  ? "bg-blue-100 text-blue-700"
+                  : "bg-indigo-100/70 text-indigo-700"
+              }`}
+            >
+              <TrendingUp className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[11px] font-bold text-slate-500 uppercase block">Total Sold Amount</span>
-              <span className="text-base font-black font-mono text-indigo-600">
+              <span className="text-[11px] font-bold text-slate-500 uppercase block">
+                {selectedChannel === "online"
+                  ? "Online Sold Amount"
+                  : selectedChannel === "pos"
+                  ? "POS Counter Amount"
+                  : "Total Sold Amount"}
+              </span>
+              <span className="text-lg font-black font-mono text-indigo-600 block">
                 {formatCurrency(summary.total_sold_amount)}
               </span>
+              {selectedChannel === "all" && (
+                <div className="flex items-center gap-2 mt-1 text-[11px] font-medium text-slate-500">
+                  <span className="text-blue-600">Online: {formatCurrency(summary.total_online_amount || 0)}</span>
+                  <span>•</span>
+                  <span className="text-emerald-600">POS: {formatCurrency(summary.total_pos_amount || 0)}</span>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center shrink-0">
-              <Package className="w-4 h-4" />
+          {/* Listed Products */}
+          <div className="flex items-start gap-3 bg-white p-3 rounded-xl border border-slate-200/60 shadow-2xs">
+            <div className="w-9 h-9 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+              <Package className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[11px] font-bold text-slate-500 uppercase block">Products Sold</span>
-              <span className="text-base font-black font-mono text-slate-800">
-                {summary.total_products_count} items listed
+              <span className="text-[11px] font-bold text-slate-500 uppercase block">Products Catalog</span>
+              <span className="text-lg font-black font-mono text-slate-800 block">
+                {summary.total_products_count} items
+              </span>
+              <span className="text-[11px] font-medium text-slate-400 block mt-1">
+                Showing channel: {selectedChannel.toUpperCase()}
               </span>
             </div>
           </div>
@@ -256,22 +380,6 @@ export default function SalesReportPage() {
             </select>
           </div>
 
-          {/* Channel Filter (All, POS, Online) */}
-          <div className="w-36">
-            <select
-              value={selectedChannel}
-              onChange={(e) => {
-                setSelectedChannel(e.target.value as any);
-                setCurrentPage(1);
-              }}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
-            >
-              <option value="all">All Channels</option>
-              <option value="pos">POS Counter</option>
-              <option value="online">Online Store</option>
-            </select>
-          </div>
-
           {/* Date Range: Start Date */}
           <div className="flex items-center gap-1.5 text-xs text-slate-600">
             <Calendar className="w-3.5 h-3.5 text-slate-400" />
@@ -300,31 +408,27 @@ export default function SalesReportPage() {
             />
           </div>
 
-          {/* Refresh & Reset Buttons */}
-          <div className="flex items-center gap-1.5 ml-auto">
+          {/* Reset Filters */}
+          {(searchTerm || selectedCategory || startDate || endDate || selectedChannel !== "all") && (
             <button
               type="button"
-              onClick={() => refetch()}
-              title="Refresh Data"
-              className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200"
+              onClick={() => {
+                setSearchTerm("");
+                setSelectedCategory("");
+                setSelectedChannel("all");
+                setStartDate("");
+                setEndDate("");
+                setCurrentPage(1);
+              }}
+              className="px-3 py-1.5 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? "animate-spin text-indigo-600" : ""}`} />
+              <X className="w-3.5 h-3.5" />
+              <span>Reset</span>
             </button>
-
-            {(searchTerm || selectedCategory || selectedChannel !== "all" || startDate || endDate) && (
-              <button
-                type="button"
-                onClick={handleResetFilters}
-                className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
-              >
-                <X className="w-3.5 h-3.5" />
-                <span>Reset</span>
-              </button>
-            )}
-          </div>
+          )}
         </div>
 
-        {/* ─── Sales Report Table (Matching User Screenshot Layout) ─── */}
+        {/* ─── Table ─── */}
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -389,9 +493,11 @@ export default function SalesReportPage() {
                             </span>
                           )}
                         </div>
-                        <span className="font-bold text-slate-800 line-clamp-1 max-w-xs">
-                          {item.product_name}
-                        </span>
+                        <div>
+                          <span className="font-bold text-slate-800 line-clamp-1 max-w-xs block">
+                            {item.product_name}
+                          </span>
+                        </div>
                       </div>
                     </td>
 
@@ -405,25 +511,46 @@ export default function SalesReportPage() {
                       {item.category}
                     </td>
 
-                    {/* Sold Qty */}
-                    <td className="py-3.5 px-5 text-center font-mono font-bold text-slate-800">
-                      {String(item.sold_qty).padStart(2, "0")}
+                    {/* Sold Qty with Channel Breakdown */}
+                    <td className="py-3.5 px-5 text-center">
+                      <span className="font-mono font-bold text-slate-800 block">
+                        {String(item.sold_qty).padStart(2, "0")} units
+                      </span>
+                      {selectedChannel === "all" && item.sold_qty > 0 && (
+                        <div className="flex items-center justify-center gap-1.5 text-[10px] font-medium mt-0.5">
+                          <span className="text-blue-600 bg-blue-50 px-1.5 py-0.2 rounded">
+                            🌐 {item.online_qty || 0}
+                          </span>
+                          <span className="text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded">
+                            🏬 {item.pos_qty || 0}
+                          </span>
+                        </div>
+                      )}
                     </td>
 
-                    {/* Sold Amount */}
-                    <td className="py-3.5 px-5 text-right font-mono font-black text-slate-900 whitespace-nowrap">
-                      {formatCurrency(item.sold_amount)}
+                    {/* Sold Amount with Channel Breakdown */}
+                    <td className="py-3.5 px-5 text-right font-mono">
+                      <span className="font-black text-slate-900 block">
+                        {formatCurrency(item.sold_amount)}
+                      </span>
+                      {selectedChannel === "all" && item.sold_amount > 0 && (
+                        <div className="flex items-center justify-end gap-1.5 text-[10px] font-medium mt-0.5">
+                          <span className="text-blue-600">Online: {formatCurrency(item.online_amount || 0)}</span>
+                          <span>|</span>
+                          <span className="text-emerald-600">POS: {formatCurrency(item.pos_amount || 0)}</span>
+                        </div>
+                      )}
                     </td>
 
-                    {/* Instock Qty */}
-                    <td className="py-3.5 px-5 text-center font-mono font-semibold text-slate-600">
+                    {/* Instock Qty Badge */}
+                    <td className="py-3.5 px-5 text-center">
                       <span
-                        className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                          item.instock_qty <= 0
-                            ? "bg-rose-50 text-rose-600 border border-rose-200"
-                            : item.instock_qty <= 10
-                            ? "bg-amber-50 text-amber-700 border border-amber-200"
-                            : "bg-slate-100 text-slate-700"
+                        className={`inline-block px-2.5 py-0.5 rounded-full font-mono text-xs font-bold ${
+                          Number(item.instock_qty) <= 0
+                            ? "bg-rose-100 text-rose-700"
+                            : Number(item.instock_qty) < 10
+                            ? "bg-amber-100 text-amber-700"
+                            : "bg-emerald-50 text-emerald-700"
                         }`}
                       >
                         {item.instock_qty}
@@ -436,24 +563,20 @@ export default function SalesReportPage() {
           </table>
         </div>
 
-        {/* ─── Bottom Pagination Bar ─── */}
-        {pagination.totalPages > 0 && (
-          <div className="p-4 sm:p-5 border-t border-slate-100 bg-white">
-            <Pagination
-              currentPage={pagination.currentPage}
-              totalPages={pagination.totalPages}
-              totalItems={pagination.totalItems}
-              perPage={perPage}
-              onPageChange={(p) => setCurrentPage(p)}
-              onPerPageChange={(pp) => {
-                setPerPage(pp);
-                setCurrentPage(1);
-              }}
-              from={Math.min((pagination.currentPage - 1) * perPage + 1, pagination.totalItems)}
-              to={Math.min(pagination.currentPage * perPage, pagination.totalItems)}
-            />
-          </div>
-        )}
+        {/* ─── Pagination Footer ─── */}
+        <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={pagination.totalPages || 1}
+            totalItems={pagination.totalItems || 0}
+            perPage={perPage}
+            onPageChange={(p) => setCurrentPage(p)}
+            onPerPageChange={(c) => {
+              setPerPage(c);
+              setCurrentPage(1);
+            }}
+          />
+        </div>
       </div>
     </div>
   );

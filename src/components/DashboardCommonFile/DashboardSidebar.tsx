@@ -29,15 +29,35 @@ const DashboardSidebar = ({
 }: SidebarLinkProps) => {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [currentQuery, setCurrentQuery] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setCurrentQuery(window.location.search);
+    }
+  }, [pathname]);
+
+  const checkIsActive = (targetHref?: string) => {
+    if (!targetHref) return false;
+    if (targetHref.includes("?")) {
+      const [targetPath, targetSearch] = targetHref.split("?");
+      return pathname === targetPath && currentQuery === `?${targetSearch}`;
+    }
+    // If targetHref has no query, but current URL has query and there's a child that specifically matches that query
+    if (currentQuery && children?.some((c) => c.href.includes("?") && c.href === `${pathname}${currentQuery}`)) {
+      return false;
+    }
+    return pathname === targetHref;
+  };
 
   // Auto-expand if a child route is active
   useEffect(() => {
-    if (children?.some((child) => pathname === child.href)) {
+    if (children?.some((child) => checkIsActive(child.href))) {
       setIsOpen(true);
     }
-  }, [pathname, children]);
+  }, [pathname, currentQuery, children]);
 
-  const isActive = href ? pathname === href : children?.some((child) => pathname === child.href);
+  const isActive = href ? checkIsActive(href) : children?.some((child) => checkIsActive(child.href));
 
   // Dropdown navigation item
   if (children && isCollapsed) {
@@ -81,7 +101,7 @@ const DashboardSidebar = ({
           <div className="overflow-hidden">
             <div className="ml-8 space-y-1 border-l border-slate-100 pl-2">
               {children.map((child, idx) => {
-                const isChildActive = pathname === child.href;
+                const isChildActive = checkIsActive(child.href);
                 return (
                   <Link
                     key={idx}

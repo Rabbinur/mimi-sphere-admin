@@ -21,6 +21,7 @@ import {
   RotateCcw,
   FileQuestion,
   Clock,
+  Globe,
 } from "lucide-react";
 
 import { LucideIcon } from "lucide-react";
@@ -98,10 +99,17 @@ export const dashboardSections: DashboardSection[] = [
     sectionTitle: "Sales",
     routes: [
       {
-        label: "Sales",
+        href: "/dashboard/orders/online",
+        icon: Globe,
+        label: "Online Orders",
+      },
+      {
+        label: "Orders Management",
         icon: ShoppingCart,
         children: [
           { href: "/dashboard/orders", label: "All Orders" },
+          { href: "/dashboard/orders/online", label: "Online Orders" },
+          { href: "/dashboard/orders/pos", label: "POS Orders" },
           { href: "/dashboard/orders/create", label: "Create Order" },
           { href: "/dashboard/orders/checkout-recovery", label: "Checkout Recovery" },
         ],
@@ -117,9 +125,9 @@ export const dashboardSections: DashboardSection[] = [
         label: "Quotation / Custom Orders",
       },
       {
-        href: "/dashboard/pos",
+        href: "/dashboard/orders/pos",
         icon: ShoppingBag,
-        label: "POS",
+        label: "POS Orders",
       },
     ],
   },
@@ -137,12 +145,9 @@ export const dashboardSections: DashboardSection[] = [
         label: "Membership & Loyalty",
       },
       {
-        label: "Discount",
+        href: "/dashboard/promo/discount",
         icon: Percent,
-        children: [
-          { href: "/dashboard/promo/discount?tab=plans", label: "Discount Plan" },
-          { href: "/dashboard/promo/discount", label: "Discount" },
-        ],
+        label: "Discount",
       },
     ],
   },
