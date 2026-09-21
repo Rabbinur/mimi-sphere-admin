@@ -13,6 +13,7 @@ export interface IPrintReportOptions {
   columns: { header: string; key: string; align?: "left" | "center" | "right" }[];
   data: Record<string, any>[];
   totalRow?: Record<string, any>;
+  extraHtml?: string;
 }
 
 export const printCleanReport = (options: IPrintReportOptions) => {
@@ -25,6 +26,7 @@ export const printCleanReport = (options: IPrintReportOptions) => {
     columns,
     data,
     totalRow,
+    extraHtml = "",
   } = options;
 
   const nowStr = new Intl.DateTimeFormat("en-US", {
@@ -267,6 +269,8 @@ export const printCleanReport = (options: IPrintReportOptions) => {
             ${totalRowHtml}
           </tbody>
         </table>
+
+        ${extraHtml}
 
         <div class="footer">
           <div class="sig-box">

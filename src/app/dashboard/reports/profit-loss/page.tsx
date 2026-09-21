@@ -32,6 +32,7 @@ import {
 import { useGetProfitLossReportQuery } from "@/components/Redux/RTK/reportsApi";
 import { posOfflineSync } from "@/modules/pos/utils/posOfflineSync";
 import { toast } from "sonner";
+import { printCleanReport } from "@/utils/printReport";
 
 type DatePreset = "today" | "yesterday" | "last7days" | "thisMonth" | "lastMonth" | "thisYear" | "custom";
 
@@ -40,7 +41,6 @@ export default function ProfitLossReportPage() {
   const [selectedPreset, setSelectedPreset] = useState<DatePreset>("thisMonth");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
-  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [pendingSyncCount, setPendingSyncCount] = useState<number>(0);
 
   const getBstDate = (date: Date) => {
@@ -170,6 +170,140 @@ export default function ProfitLossReportPage() {
     }
   };
 
+  const handlePrint = () => {
+    const netRevenue = summary.total_sales - summary.total_discount - summary.total_returns;
+    
+    const paymentBreakdownHtml = paymentBreakdown.length > 0 ? `
+      <div style="margin-top: 24px;">
+        <h3 style="font-size: 14px; font-weight: 800; color: #1e293b; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 8px; margin-bottom: 12px;">Payment Breakdown (পেমেন্ট মাধ্যম)</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 6px;">
+          <thead>
+            <tr>
+              <th style="background-color: #0f172a !important; color: #ffffff !important; text-align: left; font-size: 10.5px; padding: 8px 10px; border: 1px solid #0f172a;">Method</th>
+              <th style="background-color: #0f172a !important; color: #ffffff !important; text-align: right; font-size: 10.5px; padding: 8px 10px; border: 1px solid #0f172a;">Amount (BDT)</th>
+              <th style="background-color: #0f172a !important; color: #ffffff !important; text-align: center; font-size: 10.5px; padding: 8px 10px; border: 1px solid #0f172a;">% of Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${paymentBreakdown.map((pm: any, idx: number) => `
+              <tr style="background: ${idx % 2 === 0 ? "#ffffff" : "#f8fafc"};">
+                <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px; font-weight: 700; color: #1e293b;">${pm.name_bn || pm.method}</td>
+                <td style="text-align: right; padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px; font-weight: 700; color: #1e293b; font-family: monospace;">${formatCurrency(pm.total)}</td>
+                <td style="text-align: center; padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px; color: #475569;">${pm.pct}%</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    ` : "";
+
+    printCleanReport({
+      title: "Profit & Loss Statement (লাভ-ক্ষতি বিবরণী)",
+      subtitle: "Official Financial Income, Cost of Goods, Operating Expenses & Net Margin",
+      periodText: `${startDate || "Beginning"} to ${endDate || "Present"}`,
+      metadata: [
+        { label: "Channel", value: selectedChannel.toUpperCase() },
+        { label: "Accounting Basis", value: "Accrual / Actuals" },
+        { label: "Currency", value: "BDT (৳)" },
+      ],
+      summaryCards: [
+        {
+          label: "Total Revenue",
+          value: formatCurrency(summary.total_sales),
+          color: "#059669",
+        },
+        {
+          label: "Product Cost",
+          value: formatCurrency(summary.product_cost),
+          color: "#475569",
+        },
+        {
+          label: "Gross Profit",
+          value: `${formatCurrency(summary.gross_profit)} (${summary.gross_margin_pct}%)`,
+          color: "#0d9488",
+        },
+        {
+          label: "Store Expenses",
+          value: formatCurrency(summary.total_expense),
+          color: "#e11d48",
+        },
+        {
+          label: "Net Profit / Margin",
+          value: `${formatCurrency(summary.net_profit)} (${summary.net_margin_pct}%)`,
+          color: summary.net_profit >= 0 ? "#059669" : "#dc2626",
+        },
+        {
+          label: "Stock Valuation",
+          value: formatCurrency(summary.closing_stock_valuation),
+          color: "#7e22ce",
+        },
+      ],
+      columns: [
+        { header: "Financial Category / Account", key: "metric", align: "left" },
+        { header: "বিবরণ (Description)", key: "desc", align: "left" },
+        { header: "Amount (BDT)", key: "amount_display", align: "right" },
+        { header: "% of Revenue", key: "pct", align: "center" },
+      ],
+      data: [
+        {
+          metric: "1. Gross Sales / Total Turnover",
+          desc: "মোট বিক্রি / বিক্রয়লব্ধ আয়",
+          amount_display: `<span style="color: #059669; font-weight: 700;">${formatCurrency(summary.total_sales)}</span>`,
+          pct: "100%",
+        },
+        {
+          metric: "Less: Customer Discounts Given",
+          desc: "গ্রাহকদের দেওয়া মোট ছাড়",
+          amount_display: `<span style="color: #dc2626; font-weight: 700;">(-) ${formatCurrency(summary.total_discount)}</span>`,
+          pct: summary.total_sales > 0 ? `${Math.round((summary.total_discount / summary.total_sales) * 1000) / 10}%` : "0%",
+        },
+        {
+          metric: "Less: Customer Returns / Refunds",
+          desc: "ফেরত পণ্যের মূল্য ও রিফান্ড",
+          amount_display: `<span style="color: #dc2626; font-weight: 700;">(-) ${formatCurrency(summary.total_returns)}</span>`,
+          pct: summary.total_sales > 0 ? `${Math.round((summary.total_returns / summary.total_sales) * 1000) / 10}%` : "0%",
+        },
+        {
+          metric: "Net Revenue (প্রকৃত বিক্রয় আয়)",
+          desc: "Gross Revenue বাদ ডিসকাউন্ট ও রিটার্ন",
+          amount_display: `<span style="color: #2563eb; font-weight: 700;">${formatCurrency(netRevenue)}</span>`,
+          pct: summary.total_sales > 0 ? `${Math.round((netRevenue / summary.total_sales) * 1000) / 10}%` : "100%",
+        },
+        {
+          metric: "2. Cost of Goods Sold (COGS)",
+          desc: "বিক্রিত পণ্যের আসল ক্রয়মূল্য",
+          amount_display: `<span style="color: #dc2626; font-weight: 700;">(-) ${formatCurrency(summary.product_cost)}</span>`,
+          pct: summary.total_sales > 0 ? `${Math.round((summary.product_cost / summary.total_sales) * 1000) / 10}%` : "0%",
+        },
+        {
+          metric: "Gross Profit (মোট লাভ)",
+          desc: "Net Revenue - COGS",
+          amount_display: `<span style="color: #0d9488; font-weight: 700;">${formatCurrency(summary.gross_profit)}</span>`,
+          pct: `${summary.gross_margin_pct}%`,
+        },
+        {
+          metric: "3. Operating & Store Expenses",
+          desc: "দোকানের দৈনন্দিন খরচ ও পরিচালন ব্যয়",
+          amount_display: `<span style="color: #dc2626; font-weight: 700;">(-) ${formatCurrency(summary.total_expense)}</span>`,
+          pct: summary.total_sales > 0 ? `${Math.round((summary.total_expense / summary.total_sales) * 1000) / 10}%` : "0%",
+        },
+        {
+          metric: "4. Net Profit / (Loss)",
+          desc: "প্রকৃত নিট মুনাফা (সব খরচ বাদে)",
+          amount_display: `<span style="color: ${summary.net_profit >= 0 ? '#059669' : '#dc2626'}; font-weight: 800;">${formatCurrency(summary.net_profit)}</span>`,
+          pct: `<span style="color: ${summary.net_profit >= 0 ? '#059669' : '#dc2626'}; font-weight: 800;">${summary.net_margin_pct}%</span>`,
+        },
+      ],
+      totalRow: {
+        metric: "NET INCOME",
+        desc: `Total Orders: ${summary.total_orders} • Units Sold: ${summary.total_items_sold} pcs • Closing Stock: ${formatCurrency(summary.closing_stock_valuation)}`,
+        amount_display: `<span style="color: ${summary.net_profit >= 0 ? '#059669' : '#dc2626'}; font-size: 13px;">${formatCurrency(summary.net_profit)}</span>`,
+        pct: `<span style="color: ${summary.net_profit >= 0 ? '#059669' : '#dc2626'};">${summary.net_margin_pct}%</span>`,
+      },
+      extraHtml: paymentBreakdownHtml,
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* ─── Top Control Header ─── */}
@@ -194,7 +328,7 @@ export default function ProfitLossReportPage() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap no-print">
           <button
             type="button"
             onClick={() => refetch()}
@@ -216,7 +350,7 @@ export default function ProfitLossReportPage() {
 
           <button
             type="button"
-            onClick={() => setIsPrintModalOpen(true)}
+            onClick={handlePrint}
             className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-all cursor-pointer"
           >
             <Printer className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -226,7 +360,7 @@ export default function ProfitLossReportPage() {
       </div>
 
       {/* ─── Filter Bar ─── */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 no-print">
         <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
           <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200/80">
             <button
