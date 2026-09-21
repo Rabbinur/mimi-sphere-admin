@@ -13,6 +13,8 @@ import {
   Smartphone,
   User,
   X,
+  Clock,
+  FileClock,
 } from "lucide-react";
 import { useCreatePosOrderMutation } from "@/components/Redux/RTK/posApi";
 import { toast } from "sonner";
@@ -44,7 +46,7 @@ export function PosCheckoutModal({
 }: PosCheckoutModalProps) {
   const [createPosOrder, { isLoading }] = useCreatePosOrderMutation();
 
-  const [paymentMethod, setPaymentMethod] = useState<"cash" | "card" | "bkash" | "nagad">("cash");
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "card" | "bkash" | "nagad" | "hold" | "unpaid">("cash");
   const [tenderedAmount, setTenderedAmount] = useState<string>(String(grandTotal));
   const [customerName, setCustomerName] = useState<string>("");
   const [customerPhone, setCustomerPhone] = useState<string>("");
@@ -101,9 +103,11 @@ export function PosCheckoutModal({
       coupon_code: globalDiscount.coupon_code || undefined,
       tax: taxAmount,
       total: grandTotal,
-      payment_method: paymentMethod,
-      tendered_amount: paymentMethod === "cash" ? tendered : grandTotal,
-      change_amount: changeAmount,
+      order_status: paymentMethod === 'hold' ? 'pending' : 'delivered',
+      payment_status: (paymentMethod === 'hold' || paymentMethod === 'unpaid') ? 'pending' : 'paid',
+      payment_method: (paymentMethod === 'hold' || paymentMethod === 'unpaid') ? 'other' : paymentMethod,
+      tendered_amount: (paymentMethod === 'hold' || paymentMethod === 'unpaid') ? 0 : (paymentMethod === "cash" ? tendered : grandTotal),
+      change_amount: (paymentMethod === 'hold' || paymentMethod === 'unpaid') ? 0 : changeAmount,
       note: note.trim() || undefined,
     };
 
@@ -229,7 +233,7 @@ export function PosCheckoutModal({
             <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
               Payment Method
             </label>
-            <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 sm:gap-2">
               <button
                 type="button"
                 onClick={() => setPaymentMethod("cash")}
@@ -280,6 +284,32 @@ export function PosCheckoutModal({
               >
                 <Smartphone className="w-4 h-4 text-amber-600 shrink-0" />
                 <span>Nagad</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPaymentMethod("hold")}
+                className={`py-2 px-1 sm:py-2.5 sm:px-2 rounded-xl text-[11px] sm:text-xs font-black border transition-all flex flex-col items-center gap-1 cursor-pointer select-none ${
+                  paymentMethod === "hold"
+                    ? "bg-slate-100 border-slate-500 text-slate-800 ring-2 ring-slate-500/20 shadow-xs"
+                    : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                <Clock className="w-4 h-4 text-slate-600 shrink-0" />
+                <span>Hold</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPaymentMethod("unpaid")}
+                className={`py-2 px-1 sm:py-2.5 sm:px-2 rounded-xl text-[11px] sm:text-xs font-black border transition-all flex flex-col items-center gap-1 cursor-pointer select-none ${
+                  paymentMethod === "unpaid"
+                    ? "bg-rose-50 border-rose-500 text-rose-700 ring-2 ring-rose-500/20 shadow-xs"
+                    : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                <FileClock className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>Unpaid</span>
               </button>
             </div>
           </div>
@@ -362,9 +392,13 @@ export function PosCheckoutModal({
                 <Phone className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="tel"
+                  maxLength={11}
                   placeholder="01XXXXXXXXX"
                   value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    if (val.length <= 11) setCustomerPhone(val);
+                  }}
                   className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium outline-none focus:border-blue-500 focus:bg-white"
                 />
               </div>
@@ -394,7 +428,13 @@ export function PosCheckoutModal({
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span className="truncate">Confirm Sale (৳{grandTotal.toLocaleString("en-US")})</span>
+                  <span className="truncate">
+                    {paymentMethod === "hold" 
+                      ? `Hold Order (৳${grandTotal.toLocaleString("en-US")})` 
+                      : paymentMethod === "unpaid" 
+                        ? `Complete Unpaid (৳${grandTotal.toLocaleString("en-US")})` 
+                        : `Confirm Sale (৳${grandTotal.toLocaleString("en-US")})`}
+                  </span>
                 </>
               )}
             </button>

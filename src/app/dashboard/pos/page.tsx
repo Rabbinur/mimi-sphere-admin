@@ -16,6 +16,7 @@ import {
     PosCameraScannerModal,
     PosOrdersModal,
     PosTransactionsModal,
+    PosReportsModal,
     playBeepSound,
     usePosCart,
     useBarcodeScanner,
@@ -84,6 +85,7 @@ export default function PosTerminalPage() {
     const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
     const [isOrdersModalOpen, setIsOrdersModalOpen] = useState(false);
     const [isTransactionsModalOpen, setIsTransactionsModalOpen] = useState(false);
+    const [isReportsModalOpen, setIsReportsModalOpen] = useState(false);
     const [selectedBranch, setSelectedBranch] = useState("Freshmart");
 
     // Fetch Shift Summary Data for Statistics
@@ -885,6 +887,10 @@ export default function PosTerminalPage() {
                     closeAllHeaderModals();
                     setIsCameraScannerOpen(true);
                 }}
+                onOpenReportsModal={() => {
+                    closeAllHeaderModals();
+                    setIsReportsModalOpen(true);
+                }}
                 onRefresh={() => {
                     refetchProducts();
                     refetchShiftSummary();
@@ -1081,6 +1087,13 @@ export default function PosTerminalPage() {
             <PosTodayProfitModal
                 isOpen={isTodayProfitOpen}
                 onClose={() => setIsTodayProfitOpen(false)}
+                shiftData={shiftData}
+            />
+
+            {/* Quick Reports Modal (Sales & Profit summary and links to full pages) */}
+            <PosReportsModal
+                isOpen={isReportsModalOpen}
+                onClose={() => setIsReportsModalOpen(false)}
                 shiftData={shiftData}
             />
 

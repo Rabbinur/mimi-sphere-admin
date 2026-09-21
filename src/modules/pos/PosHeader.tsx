@@ -37,9 +37,10 @@ interface PosHeaderProps {
   onOpenCameraScanner?: () => void;
   barcodeStatusMessage?: string | null;
   isScanning?: boolean;
-  onRefresh?: () => void;
   cartItemCount?: number;
   onOpenMobileCart?: () => void;
+  onOpenReportsModal?: () => void;
+  onRefresh?: () => void;
 }
 
 export function PosHeader({
@@ -53,6 +54,8 @@ export function PosHeader({
   barcodeStatusMessage,
   cartItemCount = 0,
   onOpenMobileCart,
+  onOpenReportsModal,
+  onRefresh,
 }: PosHeaderProps) {
   const user = useAppSelector(useCurrentUserInfo) as any;
   const [currentTime, setCurrentTime] = useState<string>("");
@@ -319,12 +322,13 @@ export function PosHeader({
 
         {/* 6.5 Full Reports & Analysis */}
         <div className="relative group/tip flex items-center">
-          <Link
-            href="/dashboard/reports"
+          <button
+            type="button"
+            onClick={onOpenReportsModal}
             className="w-9 h-9 border border-rose-300 bg-rose-50 hover:bg-rose-100 active:scale-95 text-rose-700 rounded-xl flex items-center justify-center transition-all shadow-2xs cursor-pointer shrink-0"
           >
             <FileText className="w-4 h-4 stroke-[2.2]" />
-          </Link>
+          </button>
           <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2.5 py-1 bg-[#0f172a] text-white text-[11px] font-bold rounded-lg shadow-xl whitespace-nowrap opacity-0 pointer-events-none group-hover/tip:opacity-100 transition-opacity z-50 flex flex-col items-center">
             <span>Sales & Profit Reports</span>
             <span className="text-[9.5px] text-rose-300 font-normal">পূর্ণাঙ্গ রিপোর্ট</span>
