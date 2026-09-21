@@ -99,17 +99,12 @@ export const dashboardSections: DashboardSection[] = [
     sectionTitle: "Sales",
     routes: [
       {
-        href: "/dashboard/orders/online",
-        icon: Globe,
-        label: "Online Orders",
-      },
-      {
-        label: "Orders Management",
+        label: "Orders",
         icon: ShoppingCart,
         children: [
-          { href: "/dashboard/orders", label: "All Orders" },
           { href: "/dashboard/orders/online", label: "Online Orders" },
           { href: "/dashboard/orders/pos", label: "POS Orders" },
+          { href: "/dashboard/orders", label: "All Orders" },
           { href: "/dashboard/orders/create", label: "Create Order" },
           { href: "/dashboard/orders/checkout-recovery", label: "Checkout Recovery" },
         ],
@@ -123,11 +118,6 @@ export const dashboardSections: DashboardSection[] = [
         href: "/dashboard/custom-orders",
         icon: FileQuestion,
         label: "Quotation / Custom Orders",
-      },
-      {
-        href: "/dashboard/orders/pos",
-        icon: ShoppingBag,
-        label: "POS Orders",
       },
     ],
   },

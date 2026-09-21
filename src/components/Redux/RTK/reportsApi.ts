@@ -23,6 +23,8 @@ export interface IPurchaseReportQuery {
   search?: string;
   category?: string;
   brand?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 export const reportsApi = baseApi.injectEndpoints({
@@ -65,6 +67,8 @@ export const reportsApi = baseApi.injectEndpoints({
         if (params?.search) q.append("search", params.search);
         if (params?.category) q.append("category", params.category);
         if (params?.brand) q.append("brand", params.brand);
+        if (params?.startDate) q.append("startDate", params.startDate);
+        if (params?.endDate) q.append("endDate", params.endDate);
         const qs = q.toString();
         return `/reports/purchase${qs ? `?${qs}` : ""}`;
       },

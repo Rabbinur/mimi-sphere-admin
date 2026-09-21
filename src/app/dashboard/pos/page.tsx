@@ -808,12 +808,12 @@ export default function PosTerminalPage() {
     // Trigger hook to query last POS receipt from database
     const [fetchLastReceipt] = useLazyGetLastPosReceiptQuery();
 
-    // Print Last Receipt handler - 100% Database Driven
+    // Print Last Receipt handler - 100% Database Driven with local fallback
     const handlePrintLastReceipt = useCallback(async () => {
         try {
             toast.info("ডাটাবেজ থেকে সর্বশেষ রসিদ খোঁজা হচ্ছে...");
-            const res = await fetchLastReceipt().unwrap();
-            const target = res?.data || res;
+            const queryRes = await fetchLastReceipt();
+            const target = queryRes?.data?.data || queryRes?.data || receiptData;
 
             if (target && (target.receipt_number || target.order_number)) {
                 setReceiptData(target);
@@ -824,12 +824,18 @@ export default function PosTerminalPage() {
                 playBeepSound(400);
                 toast.error("ডাটাবেজে কোনো পূর্ববর্তী পিওএস অর্ডার পাওয়া যায়নি।");
             }
-        } catch (e) {
+        } catch (e: any) {
+            if (receiptData && (receiptData.receipt_number || receiptData.order_number)) {
+                setReceiptData(receiptData);
+                setIsReceiptOpen(true);
+                openThermalReceiptNewTab(receiptData);
+                return;
+            }
             console.error("Failed to query last receipt from database", e);
             playBeepSound(400);
-            toast.error("ডাটাবেজ থেকে রসিদ আনতে ব্যর্থ হয়েছে।");
+            toast.error(e?.data?.message || "ডাটাবেজ থেকে রসিদ আনতে ব্যর্থ হয়েছে।");
         }
-    }, [fetchLastReceipt, openThermalReceiptNewTab]);
+    }, [fetchLastReceipt, openThermalReceiptNewTab, receiptData]);
 
     const handleResetCart = useCallback(() => {
         clearCart();

@@ -23,6 +23,22 @@ const rawBaseQuery = (args: string | FetchArgs, api: any, extraOptions: any) => 
   const dynamicBaseQuery = fetchBaseQuery({
     baseUrl: getApiBaseUrl(),
     credentials: "include", // Essential for sending/receiving cookies
+    prepareHeaders: (headers, { getState }) => {
+      const state = getState() as RootState;
+      let token = state.auth?.accessToken;
+      if (!token && typeof window !== "undefined") {
+        const cookieToken =
+          document.cookie.match(/adminAccessToken=([^;]+)/)?.[1] ||
+          document.cookie.match(/accessToken=([^;]+)/)?.[1];
+        if (cookieToken) {
+          token = cookieToken;
+        }
+      }
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
+      return headers;
+    },
   });
   return dynamicBaseQuery(args, api, extraOptions);
 };
