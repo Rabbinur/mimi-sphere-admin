@@ -140,7 +140,7 @@ export default function PurchaseReportPage() {
         "Stock Valuation",
         "Status",
       ];
-      const rows = reportData.map((item: any) => [
+      const rows = (Array.isArray(reportData) ? reportData : []).map((item: any) => [
         `"${item.sku}"`,
         `"${(item.product_name || "").replace(/"/g, '""')}"`,
         `"${item.brand}"`,
@@ -230,7 +230,7 @@ export default function PurchaseReportPage() {
         { header: "Stock Valuation", key: "stock_value_display", align: "right" },
         { header: "Status", key: "stock_status", align: "center" },
       ],
-      data: reportData.map((item: any) => ({
+      data: (Array.isArray(reportData) ? reportData : []).map((item: any) => ({
         ...item,
         unit_cost_display: formatCurrency(item.unit_cost),
         unit_price_display: formatCurrency(item.unit_price),
@@ -506,7 +506,7 @@ export default function PurchaseReportPage() {
                     <td className="py-3 px-4"><div className="h-5 w-16 bg-slate-200 rounded-full mx-auto" /></td>
                   </tr>
                 ))
-              ) : reportData.length === 0 ? (
+              ) : !Array.isArray(reportData) || reportData.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="py-12 text-center text-slate-400">
                     <div className="flex flex-col items-center justify-center gap-2">
@@ -517,7 +517,7 @@ export default function PurchaseReportPage() {
                   </td>
                 </tr>
               ) : (
-                reportData.map((item: any) => (
+                (Array.isArray(reportData) ? reportData : []).map((item: any) => (
                   <tr key={item.product_id} className="hover:bg-slate-50/60 transition-colors">
                     {/* SKU */}
                     <td className="py-3 px-4 font-mono font-bold text-slate-700">

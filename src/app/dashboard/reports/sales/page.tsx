@@ -155,7 +155,7 @@ export default function ProductSalesReportPage() {
         "POS Amount",
         "Instock Qty",
       ];
-      const rows = reportData.map((item: any) => [
+      const rows = (Array.isArray(reportData) ? reportData : []).map((item: any) => [
         `"${item.sku}"`,
         `"${(item.product_name || "").replace(/"/g, '""')}"`,
         `"${item.brand}"`,
@@ -261,7 +261,7 @@ export default function ProductSalesReportPage() {
         { header: "Total Amount", key: "sold_amount_display", align: "right" },
         { header: "Instock", key: "instock_qty", align: "center" },
       ],
-      data: reportData.map((item: any) => ({
+      data: (Array.isArray(reportData) ? reportData : []).map((item: any) => ({
         ...item,
         sold_qty_display: `${item.sold_qty} pcs`,
         sold_amount_display: formatCurrency(item.sold_amount),
@@ -631,7 +631,7 @@ export default function ProductSalesReportPage() {
                     </div>
                   </td>
                 </tr>
-              ) : reportData.length === 0 ? (
+              ) : !Array.isArray(reportData) || reportData.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-16 text-center text-slate-400">
                     <div className="flex flex-col items-center justify-center gap-2">
@@ -646,7 +646,7 @@ export default function ProductSalesReportPage() {
                   </td>
                 </tr>
               ) : (
-                reportData.map((item: any, idx: number) => (
+                (Array.isArray(reportData) ? reportData : []).map((item: any, idx: number) => (
                   <tr
                     key={item.product_id || idx}
                     className="hover:bg-slate-50/80 transition-colors"
