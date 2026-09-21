@@ -12,9 +12,15 @@ import {
   Star,
   Gift,
   Bell,
-  File,
   Award,
   Layers,
+  ShoppingBag,
+  Ticket,
+  Percent,
+  Receipt,
+  RotateCcw,
+  FileQuestion,
+  Clock,
 } from "lucide-react";
 
 import { LucideIcon } from "lucide-react";
@@ -29,114 +35,224 @@ export type DashboardRoute = {
   }[];
 };
 
-export const dashboardRoutes: DashboardRoute[] = [
-  {
-    href: "/dashboard",
-    icon: LayoutDashboard,
-    label: "Dashboard",
-  },
-  {
-    label: "Products",
-    icon: Package,
-    children: [
-      { href: "/dashboard/products", label: "All Products" },
-      { href: "/dashboard/products/create", label: "Create Product" },
-      { href: "/dashboard/products/inventory", label: "Stock & Inventory" },
-    ],
-  },
-  {
-    href: "/dashboard/pos",
-    icon: ShoppingCart,
-    label: "POS Terminal",
-  },
-  {
-    href: "/dashboard/pos/members",
-    icon: Award,
-    label: "Members & Loyalty",
-  },
-  {
-    href: "/dashboard/categories",
-    icon: Tags,
-    label: "Categories",
-  },
-  {
-    href: "/dashboard/brands",
-    icon: Award,
-    label: "Brands",
-  },
-  {
-    href: "/dashboard/collections",
-    icon: Layers,
-    label: "Collections",
-  },
-  {
-    label: "Orders",
-    icon: ShoppingCart,
-    children: [
-      { href: "/dashboard/orders", label: "All Orders" },
-      { href: "/dashboard/pos", label: "POS Terminal" },
-      { href: "/dashboard/orders/create", label: "Create Order" },
-      { href: "/dashboard/custom-orders", label: "Request Orders" },
-      { href: "/dashboard/orders/checkout-recovery", label: "Checkout Recovery" },
-    ],
-  },
-  {
-    href: "/dashboard/reports",
-    icon: BarChart3,
-    label: "Reports & Analysis",
-  },
+export type DashboardSection = {
+  sectionTitle: string;
+  routes: DashboardRoute[];
+};
 
+export const dashboardSections: DashboardSection[] = [
   {
-    href: "/dashboard/customers",
-    icon: Users,
-    label: "Customers",
-  },
-  {
-    href: "/dashboard/blogs",
-    icon: FileText,
-    label: "Blogs",
-  },
-  {
-    href: "/dashboard/coupons",
-    icon: Gift,
-    label: "Coupons",
-  },
-  {
-    href: "/dashboard/reviews",
-    icon: Star,
-    label: "Reviews",
-  },
-  {
-    label: "Marketing",
-    icon: Bell,
-    children: [
-      { href: "/dashboard/campaigns", label: "Email Campaigns" },
-      { href: "/dashboard/campaigns/templates", label: "Email Templates" },
+    sectionTitle: "Main",
+    routes: [
+      {
+        href: "/dashboard",
+        icon: LayoutDashboard,
+        label: "Dashboard",
+      },
+      {
+        href: "/dashboard/pos",
+        icon: ShoppingCart,
+        label: "POS Terminal",
+      },
     ],
   },
   {
-    label: "Analytics",
-    icon: BarChart3,
-    children: [
-      { href: "/dashboard/analytics/meta", label: "Meta Analytics" },
-      { href: "/dashboard/analytics/google", label: "Google Analytics" },
+    sectionTitle: "Inventory",
+    routes: [
+      {
+        label: "Products",
+        icon: Package,
+        children: [
+          { href: "/dashboard/products", label: "All Products" },
+          { href: "/dashboard/products/create", label: "Create Product" },
+        ],
+      },
+      {
+        href: "/dashboard/categories",
+        icon: Tags,
+        label: "Category",
+      },
+      {
+        href: "/dashboard/brands",
+        icon: Award,
+        label: "Brands",
+      },
+      {
+        href: "/dashboard/collections",
+        icon: Layers,
+        label: "Collections",
+      },
     ],
   },
   {
-    href: "/dashboard/courier-logistics",
-    icon: Truck,
-    label: "Courier Logistics",
+    sectionTitle: "Stock",
+    routes: [
+      {
+        href: "/dashboard/products/inventory",
+        icon: Warehouse,
+        label: "Manage Stock",
+      },
+    ],
   },
   {
-    label: "Settings",
-    icon: Settings,
-    children: [
-      { href: "/dashboard/settings", label: "Site Settings" },
-      { href: "/dashboard/settings/logs", label: "Maintenance" },
-      { href: "/dashboard/settings/change-password", label: "Change Password" },
+    sectionTitle: "Sales",
+    routes: [
+      {
+        label: "Sales",
+        icon: ShoppingCart,
+        children: [
+          { href: "/dashboard/orders", label: "All Orders" },
+          { href: "/dashboard/orders/create", label: "Create Order" },
+          { href: "/dashboard/orders/checkout-recovery", label: "Checkout Recovery" },
+        ],
+      },
+      {
+        href: "/dashboard/orders",
+        icon: FileText,
+        label: "Invoices",
+      },
+      {
+        href: "/dashboard/custom-orders",
+        icon: FileQuestion,
+        label: "Quotation / Custom Orders",
+      },
+      {
+        href: "/dashboard/pos",
+        icon: ShoppingBag,
+        label: "POS",
+      },
+    ],
+  },
+  {
+    sectionTitle: "Promo",
+    routes: [
+      {
+        href: "/dashboard/coupons",
+        icon: Ticket,
+        label: "Coupons",
+      },
+      {
+        href: "/dashboard/pos/members",
+        icon: Gift,
+        label: "Membership & Loyalty",
+      },
+      {
+        label: "Discount",
+        icon: Percent,
+        children: [
+          { href: "/dashboard/promo/discount?tab=plans", label: "Discount Plan" },
+          { href: "/dashboard/promo/discount", label: "Discount" },
+        ],
+      },
+    ],
+  },
+  {
+    sectionTitle: "Purchases",
+    routes: [
+      {
+        href: "/dashboard/purchases",
+        icon: ShoppingBag,
+        label: "Purchases",
+      },
+      {
+        href: "/dashboard/purchases/order",
+        icon: FileText,
+        label: "Purchase Order",
+      },
+      {
+        href: "/dashboard/purchases/return",
+        icon: RotateCcw,
+        label: "Purchase Return",
+      },
+    ],
+  },
+  {
+    sectionTitle: "Reports",
+    routes: [
+      {
+        href: "/dashboard/reports/sales",
+        icon: BarChart3,
+        label: "Sales Report",
+      },
+      {
+        href: "/dashboard/reports/purchase",
+        icon: Clock,
+        label: "Purchase report",
+      },
+      {
+        href: "/dashboard/products/inventory",
+        icon: Warehouse,
+        label: "Inventory Report",
+      },
+      {
+        href: "/dashboard/orders",
+        icon: Receipt,
+        label: "Invoice Report",
+      },
+      {
+        href: "/dashboard/reports/profit-loss",
+        icon: BarChart3,
+        label: "Profit & Loss Report",
+      },
+    ],
+  },
+  {
+    sectionTitle: "Settings & Others",
+    routes: [
+      {
+        href: "/dashboard/customers",
+        icon: Users,
+        label: "Customers",
+      },
+      {
+        href: "/dashboard/blogs",
+        icon: FileText,
+        label: "Blogs",
+      },
+      {
+        href: "/dashboard/reviews",
+        icon: Star,
+        label: "Reviews",
+      },
+      {
+        label: "Marketing",
+        icon: Bell,
+        children: [
+          { href: "/dashboard/campaigns", label: "Email Campaigns" },
+          { href: "/dashboard/campaigns/templates", label: "Email Templates" },
+        ],
+      },
+      {
+        label: "Analytics",
+        icon: BarChart3,
+        children: [
+          { href: "/dashboard/analytics/meta", label: "Meta Analytics" },
+          { href: "/dashboard/analytics/google", label: "Google Analytics" },
+        ],
+      },
+      {
+        href: "/dashboard/courier-logistics",
+        icon: Truck,
+        label: "Courier Logistics",
+      },
+      {
+        label: "Settings",
+        icon: Settings,
+        children: [
+          { href: "/dashboard/settings", label: "Site Settings" },
+          { href: "/dashboard/settings/logs", label: "Maintenance" },
+          { href: "/dashboard/settings/change-password", label: "Change Password" },
+        ],
+      },
     ],
   },
 ];
+
+// Flat list for any consumers that iterate flat array
+export const dashboardRoutes: DashboardRoute[] = dashboardSections.flatMap(
+  (section) => section.routes
+);
+
 export const customerDashboardRoutes = [
   {
     href: "/customer-dashboard",
@@ -158,13 +274,11 @@ export const customerDashboardRoutes = [
     icon: ShoppingCart,
     label: "Orders",
   },
-
   {
     href: "/customer-dashboard/customers",
     icon: Users,
     label: "Customers",
   },
-
   {
     href: "/customer-dashboard/settings",
     icon: Settings,
