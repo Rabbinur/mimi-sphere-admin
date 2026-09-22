@@ -22,6 +22,7 @@ import {
   FileQuestion,
   Clock,
   Globe,
+  Building2,
 } from "lucide-react";
 
 import { LucideIcon } from "lucide-react";
@@ -144,6 +145,11 @@ export const dashboardSections: DashboardSection[] = [
   {
     sectionTitle: "Purchases",
     routes: [
+      {
+        href: "/dashboard/suppliers",
+        icon: Building2,
+        label: "Suppliers",
+      },
       {
         href: "/dashboard/purchases",
         icon: ShoppingBag,
