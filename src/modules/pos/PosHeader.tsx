@@ -109,18 +109,18 @@ export function PosHeader({
     <header className="h-16 bg-white text-slate-800 px-3 sm:px-5 flex items-center justify-between shadow-xs select-none border-b border-slate-200 relative z-20 shrink-0 gap-2">
       {/* ─── Left Section: Brand Logo + Teal Live Timer + Purple Dashboard Button ─── */}
       <div className="flex items-center gap-2.5 sm:gap-3.5 shrink-0">
-        {/* Back to Dashboard Button */}
+        {/* Back Button */}
         <Link
-          href="/dashboard"
+          href={user?.role === "CASHIER" ? "/dashboard/orders" : "/dashboard"}
           className="flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 active:scale-95 text-slate-700 hover:text-slate-950 text-xs font-bold transition-all border border-slate-200/80 shadow-2xs cursor-pointer shrink-0"
-          title="Back to Admin Dashboard"
+          title={user?.role === "CASHIER" ? "Go to Online Orders" : "Back to Admin Dashboard"}
         >
           <ArrowLeft className="w-3.5 h-3.5 text-slate-600" />
-          <span className="hidden sm:inline">Dashboard</span>
+          <span className="hidden sm:inline">{user?.role === "CASHIER" ? "Orders" : "Dashboard"}</span>
         </Link>
 
         {/* Brand Logo with POS Badge */}
-        <Link href="/dashboard" className="flex items-center gap-2 shrink-0 group cursor-pointer" title="MIMI SPHERE POS">
+        <Link href={user?.role === "CASHIER" ? "/dashboard/pos" : "/dashboard"} className="flex items-center gap-2 shrink-0 group cursor-pointer" title="MIMI SPHERE POS">
           <div className="relative flex items-center h-8">
             <Image
               src="/logo.png"
@@ -136,21 +136,33 @@ export function PosHeader({
           </span>
         </Link>
 
-        {/* Live Running Time Pill (Matching Image 2 - Teal / Emerald) */}
+        {/* Live Running Time Pill */}
         <div className="bg-[#009688] hover:bg-[#00897b] px-2.5 sm:px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 sm:gap-2 font-mono text-xs sm:text-sm font-bold shadow-xs transition-colors shrink-0">
-          <Timer className="w-3.5 h-3.5 sm:w-4 sm:h-4  animate-pulse shrink-0" />
+          <Timer className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-pulse shrink-0" />
           <span className="tracking-wide">{currentTime || "00:00:00"}</span>
         </div>
 
-        {/* Purple Dashboard Button (Matching Image 2) */}
+        {/* Online Orders Button (Accessible to both Cashier & Admin) */}
         <Link
-          href="/dashboard"
-          className="bg-[#6338f6] hover:bg-[#5225ea] active:scale-95 text-white font-bold text-xs sm:text-sm px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-lg flex items-center gap-1.5 shadow-xs transition-all cursor-pointer shrink-0"
-          title="Return to Admin Dashboard"
+          href="/dashboard/orders"
+          className="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs sm:text-sm px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-lg flex items-center gap-1.5 shadow-xs transition-all cursor-pointer shrink-0"
+          title="Manage Online Orders"
         >
-          <Globe className="w-4 h-4 shrink-0" />
-          <span className="hidden sm:inline">Dashboard</span>
+          <ShoppingBag className="w-4 h-4 shrink-0" />
+          <span className="hidden sm:inline">Online Orders</span>
         </Link>
+
+        {/* Purple Dashboard Button (Admin Only) */}
+        {user?.role !== "CASHIER" && (
+          <Link
+            href="/dashboard"
+            className="bg-[#6338f6] hover:bg-[#5225ea] active:scale-95 text-white font-bold text-xs sm:text-sm px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-lg flex items-center gap-1.5 shadow-xs transition-all cursor-pointer shrink-0"
+            title="Return to Admin Dashboard"
+          >
+            <Globe className="w-4 h-4 shrink-0" />
+            <span className="hidden sm:inline">Dashboard</span>
+          </Link>
+        )}
 
         {/* Offline / Online Network Sync Badge */}
         <div className="shrink-0 hidden md:block">

@@ -45,9 +45,21 @@ export function middleware(request: NextRequest) {
 
   if (userRole) {
     if (userRole === "USER" && isDashboard) {
-      // If a standard user tries to access admin dashboard, redirect them or show error
-      // Since this is a dedicated admin project, maybe redirect to a "not authorized" or just back to home
       return NextResponse.redirect(new URL("/login", request.url));
+    }
+
+    if (userRole === "CASHIER") {
+      const isAllowedForCashier =
+        pathname.startsWith("/dashboard/pos") ||
+        pathname.startsWith("/dashboard/orders");
+
+      if (isDashboard && !isAllowedForCashier) {
+        return NextResponse.redirect(new URL("/dashboard/pos", request.url));
+      }
+
+      if (pathname === "/login") {
+        return NextResponse.redirect(new URL("/dashboard/pos", request.url));
+      }
     }
   }
 
@@ -59,7 +71,7 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/dashboard/:path*", "/login"],
 };
 
 

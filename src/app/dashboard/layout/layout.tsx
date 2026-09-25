@@ -4,14 +4,50 @@ import DashboardHeader from "@/components/DashboardCommonFile/DahsboardHeader";
 import { dashboardRoutes, dashboardSections } from "@/components/DashboardCommonFile/DashboardRoutes";
 import DashboardSidebar from "@/components/DashboardCommonFile/DashboardSidebar";
 import { toggleSidebar } from "@/components/Redux/Slice/sidebarSlice";
+import { useCurrentUserInfo } from "@/components/Redux/Slice/authSlice";
 import type { RootState } from "@/components/Redux/store";
 import Link from "next/link";
-import type React from "react";
+import React, { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const isSidebarOpen = useSelector((state: RootState) => state.sidebar.isOpen);
+  const user = useSelector(useCurrentUserInfo);
   const dispatch = useDispatch();
+
+  // If user is a Cashier, filter sections to only include POS and Orders
+  const filteredSections = useMemo(() => {
+    if (user?.role === "CASHIER") {
+      return dashboardSections
+        .map((section) => ({
+          ...section,
+          routes: section.routes
+            .map((r) => {
+              const matchesSelf = Boolean(
+                r.href &&
+                  (r.href.startsWith("/dashboard/pos") ||
+                    r.href.startsWith("/dashboard/orders"))
+              );
+
+              if (r.children) {
+                const matchingChildren = r.children.filter(
+                  (child) =>
+                    child.href.startsWith("/dashboard/pos") ||
+                    child.href.startsWith("/dashboard/orders")
+                );
+                if (matchingChildren.length > 0) {
+                  return { ...r, children: matchingChildren };
+                }
+              }
+
+              return matchesSelf ? r : null;
+            })
+            .filter((r): r is NonNullable<typeof r> => r !== null),
+        }))
+        .filter((section) => section.routes.length > 0);
+    }
+    return dashboardSections;
+  }, [user?.role]);
 
   return (
     <div className="flex bg-[#F8FAFC] w-full min-h-screen">
@@ -35,7 +71,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                     Mimi Sphere
                   </h2>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Admin Panel
+                    {user?.role === "CASHIER" ? "Cashier Terminal" : "Admin Panel"}
                   </p>
                 </div>
               )}
@@ -44,7 +80,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
           {/* Navigation Scroll Area */}
           <nav className="flex-1 px-3 space-y-1 overflow-y-auto custom-scrollbar pb-8">
-            {dashboardSections.map((section, sIdx) => (
+            {filteredSections.map((section, sIdx) => (
               <div key={sIdx} className="space-y-1">
                 {/* Section Header */}
                 {isSidebarOpen ? (

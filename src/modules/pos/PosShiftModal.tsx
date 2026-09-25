@@ -6,6 +6,7 @@ import {
   CreditCard,
   FileSpreadsheet,
   Loader2,
+  Printer,
   Smartphone,
   X,
 } from "lucide-react";
@@ -39,6 +40,48 @@ export function PosShiftModal({ isOpen, onClose }: PosShiftModalProps) {
   const cashSales = Number(data.cash_sales || 0);
   const cardSales = Number(data.card_sales || 0);
   const digitalSales = Number(data.digital_sales || 0);
+
+  const handlePrint = () => {
+    const printWindow = window.open("", "_blank", "width=380,height=600");
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Shift Sales Summary - MIMI SPHERE</title>
+          <style>
+            body { font-family: monospace; font-size: 12px; margin: 10px; width: 280px; }
+            .center { text-align: center; }
+            .bold { font-weight: bold; }
+            .divider { border-top: 1px dashed #000; margin: 8px 0; }
+            .row { display: flex; justify-content: space-between; margin: 4px 0; }
+            .sig { margin-top: 40px; border-top: 1px solid #000; text-align: center; padding-top: 4px; }
+          </style>
+        </head>
+        <body>
+          <div class="center bold" style="font-size: 15px;">MIMI SPHERE POS</div>
+          <div class="center">CASHIER SHIFT SUMMARY</div>
+          <div class="center">\${data.date || new Date().toLocaleDateString()}</div>
+          <div class="divider"></div>
+          <div class="row"><span>Total Orders:</span><span class="bold">\${totalOrders}</span></div>
+          <div class="row"><span>Cash Sales:</span><span>৳\${cashSales.toFixed(2)}</span></div>
+          <div class="row"><span>Card Sales:</span><span>৳\${cardSales.toFixed(2)}</span></div>
+          <div class="row"><span>bKash/MFS:</span><span>৳\${digitalSales.toFixed(2)}</span></div>
+          <div class="divider"></div>
+          <div class="row bold" style="font-size: 14px;"><span>TOTAL SALES:</span><span>৳\${totalSales.toFixed(2)}</span></div>
+          <div class="divider"></div>
+          <div class="sig">Cashier Signature</div>
+          <div class="sig" style="margin-top: 30px;">Manager Signature</div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
+  };
 
   return (
     <div className="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
@@ -146,12 +189,21 @@ export function PosShiftModal({ isOpen, onClose }: PosShiftModalProps) {
             </>
           )}
 
-          {/* Footer Action */}
-          <div className="pt-2 flex justify-end">
+          {/* Footer Actions */}
+          <div className="pt-2 flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={handlePrint}
+              disabled={isLoading}
+              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs flex items-center gap-1.5"
+            >
+              <Printer className="w-4 h-4" />
+              <span>Print Slip</span>
+            </button>
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 bg-[#181938] hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
+              className="px-6 py-2.5 bg-[#181938] hover:bg-slate-800 active:scale-95 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
             >
               Close
             </button>

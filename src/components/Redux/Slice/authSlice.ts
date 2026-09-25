@@ -9,7 +9,7 @@ type TUserInfo = {
   isVerified: boolean;
   phone?: string;
   photo?: string;
-  role: "USER" | "ADMIN";
+  role: "USER" | "ADMIN" | "CASHIER";
   addresses?: TAddress[];
 };
 

@@ -20,5 +20,7 @@ export const tagTypes = [
   "CustomerReview",
   "collections",
   "category",
+  "purchase",
+  "supplier",
 ] as const;
 
