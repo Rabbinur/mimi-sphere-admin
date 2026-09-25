@@ -9,6 +9,7 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
+    DialogTrigger,
 } from "@/components/ui/dialog";
 import {
     DropdownMenu,
@@ -106,6 +107,7 @@ export function MediaLibrary({
     });
 
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
     const [deleteMultipleFiles, { isLoading: deleting }] =
         useDeleteMultipleFilesMutation();
 
@@ -127,6 +129,7 @@ export function MediaLibrary({
             setPreviewFile(null);
             setShowUrlUpload(false);
             setUrlInput("");
+            setIsDragging(false);
         }
     }, [isOpen]);
 
@@ -167,19 +170,166 @@ export function MediaLibrary({
         setSelectedFiles(newSelected);
     };
 
-    // FIX: Add new files to the mediaFiles state after a successful upload
-    const handleFileUpload = async (files: FileList) => {
-        const formData = new FormData();
-        for (let i = 0; i < files.length; i++) {
-            formData.append("files", files[i]);
+    // Upload files from FileList or File array
+    const handleFileUpload = async (files: FileList | File[]) => {
+        const fileList = Array.from(files);
+        if (fileList.length === 0) return;
+
+        const MAX_SIZE = 5 * 1024 * 1024; // 5MB limit
+        const oversized = fileList.filter((f) => f.size > MAX_SIZE);
+        if (oversized.length > 0) {
+            toast.error(`ফাইলের সাইজ ৫MB এর বেশি হতে পারবে না (${oversized.map((f) => f.name).join(", ")})`);
+            return;
         }
+
+        const formData = new FormData();
+        fileList.forEach((file) => {
+            formData.append("files", file);
+        });
+
+        const toastId = toast.loading(`Uploading ${fileList.length} image(s)...`);
         try {
             const result = await uploadFiles(formData).unwrap();
+            toast.success("Image(s) uploaded successfully!", { id: toastId });
 
-            toast.success("Files uploaded successfully!");
-        } catch (error) {
+            if (result?.files && Array.isArray(result.files) && result.files.length > 0) {
+                const newIds = result.files.map((f: any) => f._id);
+                if (!multiple) {
+                    setSelectedFiles(new Set([newIds[0]]));
+                    setPreviewFile(result.files[0]);
+                } else {
+                    setSelectedFiles((prev) => {
+                        const next = new Set(prev);
+                        newIds.forEach((id: string) => {
+                            if (next.size < maxFiles) next.add(id);
+                        });
+                        return next;
+                    });
+                    setPreviewFile(result.files[result.files.length - 1]);
+                }
+            }
+        } catch (error: any) {
             console.error("Upload error:", error);
-            toast.error("Failed to upload files.");
+            const err = error?.data?.message || error?.message || "Failed to upload files.";
+            toast.error(err, { id: toastId });
+        }
+    };
+
+    // 📋 Clipboard Paste (Ctrl + V) Handler
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handlePaste = async (e: ClipboardEvent) => {
+            const activeElem = document.activeElement as HTMLElement;
+            const isTypingInInput =
+                activeElem &&
+                (activeElem.tagName === "INPUT" || activeElem.tagName === "TEXTAREA") &&
+                activeElem.getAttribute("type") !== "file";
+
+            // Check for image blobs in clipboard
+            const items = e.clipboardData?.items;
+            if (items && items.length > 0) {
+                const imageFiles: File[] = [];
+
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    if (item.type.startsWith("image/")) {
+                        const blob = item.getAsFile();
+                        if (blob) {
+                            const ext = item.type.split("/")[1] || "png";
+                            const file = new File(
+                                [blob],
+                                `pasted-image-${Date.now()}.${ext}`,
+                                { type: item.type }
+                            );
+                            imageFiles.push(file);
+                        }
+                    }
+                }
+
+                if (imageFiles.length > 0) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    await handleFileUpload(imageFiles);
+                    return;
+                }
+            }
+
+            // Check if user pasted an image URL (when not focused on a text box)
+            if (!isTypingInInput) {
+                const pastedText = e.clipboardData?.getData("text")?.trim();
+                if (
+                    pastedText &&
+                    (pastedText.startsWith("http://") ||
+                        pastedText.startsWith("https://") ||
+                        pastedText.startsWith("data:image/"))
+                ) {
+                    if (
+                        pastedText.match(/\.(jpeg|jpg|gif|png|webp|avif|svg)(\?.*)?$/i) ||
+                        pastedText.includes("image") ||
+                        pastedText.includes("photo") ||
+                        pastedText.includes("cdn") ||
+                        pastedText.startsWith("data:image/")
+                    ) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const toastId = toast.loading("Uploading pasted image URL...");
+                        try {
+                            const res = await uploadFileFromUrl({ fileUrl: pastedText }).unwrap();
+                            toast.success("Image uploaded from clipboard URL!", { id: toastId });
+                            if (res?.file) {
+                                if (!multiple) {
+                                    setSelectedFiles(new Set([res.file._id]));
+                                    setPreviewFile(res.file);
+                                } else {
+                                    setSelectedFiles((prev) => {
+                                        const next = new Set(prev);
+                                        if (next.size < maxFiles) next.add(res.file._id);
+                                        return next;
+                                    });
+                                    setPreviewFile(res.file);
+                                }
+                            }
+                        } catch (err) {
+                            toast.error("Failed to upload image from URL", { id: toastId });
+                        }
+                    }
+                }
+            }
+        };
+
+        window.addEventListener("paste", handlePaste);
+        return () => window.removeEventListener("paste", handlePaste);
+    }, [isOpen, uploadFiles, uploadFileFromUrl, multiple, maxFiles]);
+
+    // Drag & Drop handlers
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!isDragging) setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+        setIsDragging(false);
+    };
+
+    const handleDrop = async (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            const imageFiles = Array.from(e.dataTransfer.files).filter((file) =>
+                file.type.startsWith("image/")
+            );
+            if (imageFiles.length > 0) {
+                await handleFileUpload(imageFiles);
+            } else {
+                toast.warning("Please drop image files only.");
+            }
         }
     };
 
@@ -191,11 +341,24 @@ export function MediaLibrary({
         }
         try {
             const response = await uploadFileFromUrl({ fileUrl: urlInput }).unwrap();
-            console.log("Uploaded file data:", response);
             toast.success("File added from URL successfully");
+            setUrlInput("");
+            setShowUrlUpload(false);
+            if (response?.file) {
+                if (!multiple) {
+                    setSelectedFiles(new Set([response.file._id]));
+                    setPreviewFile(response.file);
+                } else {
+                    setSelectedFiles((prev) => {
+                        const next = new Set(prev);
+                        if (next.size < maxFiles) next.add(response.file._id);
+                        return next;
+                    });
+                    setPreviewFile(response.file);
+                }
+            }
         } catch (error) {
             toast.error("Invalid URL provided");
-        } finally {
         }
     };
 
@@ -447,16 +610,17 @@ export function MediaLibrary({
 
     return (
         <>
-            <Button type="button"
+            <Button 
+                type="button"
                 variant="outline"
                 className="relative cursor-pointer border border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
                 onClick={(e) => {
-                    e.preventDefault(); // Prevent form submission
-                    e.stopPropagation(); // Stop event bubbling
+                    e.preventDefault();
+                    e.stopPropagation();
                     setIsOpen(true);
                 }}
             >
-                <span className="pointer-events-none flex items-center gap-2">
+                <span className="flex items-center gap-2">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-4 w-4 text-gray-500"
@@ -476,27 +640,51 @@ export function MediaLibrary({
             </Button>
 
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                <DialogContent className="md:max-w-[60vw] w-full max-h-[95vh] flex flex-col p-2 md:p-4 2xl:p-6  rounded-sm md:rounded-md bg-white">
+                <DialogContent
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className="!fixed !top-1/2 !left-1/2 !-translate-x-1/2 !-translate-y-1/2 !flex !flex-col w-[95vw] sm:max-w-[90vw] md:max-w-[80vw] lg:max-w-[75vw] 2xl:max-w-[70vw] h-[85vh] max-h-[85vh] p-4 md:p-6 bg-white !z-50 overflow-hidden shadow-2xl rounded-lg"
+                >
+                    {/* Visual Drag and Drop Overlay */}
+                    {isDragging && (
+                        <div className="absolute inset-0 z-50 bg-blue-600/90 text-white flex flex-col items-center justify-center backdrop-blur-sm animate-in fade-in duration-150 rounded-md pointer-events-none">
+                            <Upload className="w-16 h-16 animate-bounce mb-3" />
+                            <h3 className="text-xl font-bold">Drop Image(s) Here to Upload</h3>
+                            <p className="text-sm opacity-90 mt-1">Release mouse to start uploading immediately</p>
+                        </div>
+                    )}
+
                     {/* Hidden file input */}
                     <input
                         ref={fileInputRef}
                         type="file"
                         multiple={multiple}
                         accept={acceptedTypes.join(",")}
-                        onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
+                        onChange={(e) => {
+                            if (e.target.files && e.target.files.length > 0) {
+                                handleFileUpload(e.target.files);
+                            }
+                            e.target.value = "";
+                        }}
                         className="hidden"
                     />
 
                     <DialogHeader className="flex-shrink-0">
-                        <DialogTitle className="flex items-center gap-2">
-                            <ImageIcon className="w-5 h-5" />
-                            {title}
-                            <Badge className=" text-white" variant="secondary">
-                                {totalFiles} files
-                            </Badge>
-                        </DialogTitle>
+                        <div className="flex items-center justify-between flex-wrap gap-2 pr-6">
+                            <DialogTitle className="flex items-center gap-2">
+                                <ImageIcon className="w-5 h-5" />
+                                {title}
+                                <Badge className="text-white bg-slate-700 hover:bg-slate-700 text-xs" variant="secondary">
+                                    {totalFiles} files
+                                </Badge>
+                            </DialogTitle>
+                            <span className="text-[11px] font-medium bg-amber-50 text-amber-800 border border-amber-200/80 px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                                📋 <span className="font-bold">Tip:</span> Press <kbd className="bg-white px-1 py-0.5 rounded border text-[10px] font-bold text-slate-700">Ctrl + V</kbd> to paste copied image
+                            </span>
+                        </div>
                         <DialogDescription className="sr-only">
-                            Browse, upload, and manage your media files for your application.
+                            Browse, upload, paste from clipboard, and manage your media files.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -509,7 +697,7 @@ export function MediaLibrary({
                                     type="button"
                                     variant="default"
                                     size="sm"
-                                    className="bg-blue-600 hover:bg-blue-700 text-sm px-3 py-1.5"
+                                    className="bg-[#002447] hover:bg-[#071426] text-sm px-3 py-1.5"
                                     disabled={isLoading}
                                 >
                                     {isLoading ? (
@@ -540,11 +728,12 @@ export function MediaLibrary({
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    className="text-sm px-3 py-1.5"
+                                    className="text-sm px-3 py-1.5 text-gray-600 hover:text-gray-900"
                                     onClick={clearSelection}
+                                    title="Unselect all chosen items"
                                 >
-                                    <Trash className="w-4 h-4 mr-2" />
-                                    Clear
+                                    <X className="w-4 h-4 mr-2" />
+                                    Deselect
                                 </Button>
                                 {multiple && (
                                     <Button 

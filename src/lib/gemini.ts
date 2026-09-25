@@ -59,7 +59,7 @@ const callOpenRouter = async (prompt: string): Promise<string | null> => {
         Authorization: `Bearer ${apiKey}`,
         "HTTP-Referer":
           process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-        "X-Title": "Shopping Cart BD",
+        "X-Title": "Mimi Sphere",
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",

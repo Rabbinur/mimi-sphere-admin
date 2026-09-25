@@ -6,9 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MediaLibrary } from "@/components/ui/media-manager";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TCMS, THeroFeature, THeroSlide } from "@/types";
-import { MoveDown, MoveUp, Plus, Trash2 } from "lucide-react";
+import { Gift, MoveDown, MoveUp, Plus, Sparkles, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -38,21 +39,36 @@ export default function SettingsPage() {
     if (isLoading) return <div className="p-6">Loading site settings...</div>;
     if (!formData) return <div className="p-6">No settings data available.</div>;
 
+    const popupData = formData.exitIntentPopup || {
+        isEnabled: true,
+        title: "WAIT! GET 5% OFF NOW",
+        subtitle: "Complete your order now and save instantly!",
+        voucherCode: "SAVE05",
+        discountText: "5% OFF",
+        expiryMinutes: 5,
+        ctaText: "CLAIM DISCOUNT",
+        declineText: "I'll pay full price",
+    };
+
     return (
         <div className="p-4 md:p-8 bg-white min-h-screen space-y-6">
 
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold">Site Settings</h1>
+                <div>
+                    <h1 className="text-3xl font-bold">Site Settings</h1>
+                    <p className="text-xs text-slate-500 mt-1">Manage site branding, sliders, features & offer popups</p>
+                </div>
                 <Button onClick={handleSave} disabled={isUpdating}>
                     {isUpdating ? "Saving..." : "Save Changes"}
                 </Button>
             </div>
 
             <Tabs defaultValue="company" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="company">Company & Social</TabsTrigger>
                     <TabsTrigger value="slider">Hero Slider</TabsTrigger>
                     <TabsTrigger value="features">Hero Features</TabsTrigger>
+                    <TabsTrigger value="popup">Offer Popup (Exit Intent)</TabsTrigger>
                 </TabsList>
 
 
@@ -360,6 +376,193 @@ export default function SettingsPage() {
                             ))}
                         </CardContent>
                     </Card>
+                </TabsContent>
+
+                <TabsContent value="popup">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Settings Form (2 cols) */}
+                        <div className="lg:col-span-2 space-y-6">
+                            <Card>
+                                <CardHeader>
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <CardTitle className="text-xl flex items-center gap-2">
+                                                <Gift className="w-5 h-5 text-amber-500" />
+                                                Exit-Intent Discount Popup
+                                            </CardTitle>
+                                            <CardDescription className="mt-1">
+                                                Show a high-converting offer popup when customers try to leave the checkout page or browser tab.
+                                            </CardDescription>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <Label htmlFor="popup-enable" className="font-bold text-sm">
+                                                {popupData.isEnabled ? "Enabled" : "Disabled"}
+                                            </Label>
+                                            <Switch
+                                                id="popup-enable"
+                                                checked={popupData.isEnabled}
+                                                onCheckedChange={(checked) =>
+                                                    setFormData({
+                                                        ...formData,
+                                                        exitIntentPopup: { ...popupData, isEnabled: checked },
+                                                    })
+                                                }
+                                            />
+                                        </div>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Headline / Title</Label>
+                                            <Input
+                                                value={popupData.title}
+                                                placeholder="e.g., WAIT! GET 5% OFF NOW"
+                                                onChange={(e) =>
+                                                    setFormData({
+                                                        ...formData,
+                                                        exitIntentPopup: { ...popupData, title: e.target.value },
+                                                    })
+                                                }
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Discount Badge / Highlight</Label>
+                                            <Input
+                                                value={popupData.discountText}
+                                                placeholder="e.g., 5% OFF or ৳100 OFF"
+                                                onChange={(e) =>
+                                                    setFormData({
+                                                        ...formData,
+                                                        exitIntentPopup: { ...popupData, discountText: e.target.value },
+                                                    })
+                                                }
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Subtitle / Description</Label>
+                                        <Input
+                                            value={popupData.subtitle}
+                                            placeholder="e.g., Complete your order now and save instantly!"
+                                            onChange={(e) =>
+                                                setFormData({
+                                                    ...formData,
+                                                    exitIntentPopup: { ...popupData, subtitle: e.target.value },
+                                                })
+                                            }
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Voucher / Coupon Code</Label>
+                                            <Input
+                                                value={popupData.voucherCode}
+                                                placeholder="e.g., SAVE05"
+                                                className="uppercase font-mono font-bold"
+                                                onChange={(e) =>
+                                                    setFormData({
+                                                        ...formData,
+                                                        exitIntentPopup: { ...popupData, voucherCode: e.target.value.toUpperCase() },
+                                                    })
+                                                }
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Countdown Duration (Minutes)</Label>
+                                            <Input
+                                                type="number"
+                                                min={1}
+                                                max={60}
+                                                value={popupData.expiryMinutes}
+                                                onChange={(e) =>
+                                                    setFormData({
+                                                        ...formData,
+                                                        exitIntentPopup: { ...popupData, expiryMinutes: Number(e.target.value) || 5 },
+                                                    })
+                                                }
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>CTA Button Text</Label>
+                                            <Input
+                                                value={popupData.ctaText}
+                                                placeholder="e.g., CLAIM DISCOUNT"
+                                                onChange={(e) =>
+                                                    setFormData({
+                                                        ...formData,
+                                                        exitIntentPopup: { ...popupData, ctaText: e.target.value },
+                                                    })
+                                                }
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Decline / Close Link Text</Label>
+                                            <Input
+                                                value={popupData.declineText}
+                                                placeholder="e.g., I'll pay full price"
+                                                onChange={(e) =>
+                                                    setFormData({
+                                                        ...formData,
+                                                        exitIntentPopup: { ...popupData, declineText: e.target.value },
+                                                    })
+                                                }
+                                            />
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        {/* Live Preview (1 col) */}
+                        <div className="lg:col-span-1">
+                            <Card className="bg-slate-950 text-white border-slate-800 sticky top-4">
+                                <CardHeader className="pb-2">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400">Live Preview</span>
+                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${popupData.isEnabled ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}`}>
+                                            {popupData.isEnabled ? "Active" : "Inactive"}
+                                        </span>
+                                    </div>
+                                    <CardTitle className="text-sm text-slate-400">Checkout Modal</CardTitle>
+                                </CardHeader>
+                                <CardContent className="pt-2">
+                                    <div className="bg-gradient-to-b from-[#001f3f] to-[#001020] rounded-2xl p-5 border border-amber-500/30 text-center space-y-3 shadow-xl">
+                                        <div className="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-slate-950 shadow-md">
+                                            <Gift className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-base font-black text-white leading-tight">
+                                                {popupData.title || "WAIT! GET 5% OFF"}
+                                            </h4>
+                                            <p className="text-[11px] text-slate-300 mt-1">
+                                                {popupData.subtitle || "Complete order & save"}
+                                            </p>
+                                        </div>
+                                        <div className="bg-white/10 border border-dashed border-amber-400/50 rounded-xl p-2.5 flex items-center justify-between px-3">
+                                            <span className="font-mono font-black text-amber-400 text-sm tracking-wider">
+                                                {popupData.voucherCode || "SAVE05"}
+                                            </span>
+                                            <span className="text-[10px] bg-amber-400/20 text-amber-300 font-bold px-2 py-0.5 rounded">
+                                                {popupData.expiryMinutes || 5}:00
+                                            </span>
+                                        </div>
+                                        <button className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all">
+                                            {popupData.ctaText || "CLAIM DISCOUNT"}
+                                        </button>
+                                        <p className="text-[9px] text-slate-400 uppercase tracking-wider">
+                                            {popupData.declineText || "I'll pay full price"}
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
                 </TabsContent>
             </Tabs>
         </div>

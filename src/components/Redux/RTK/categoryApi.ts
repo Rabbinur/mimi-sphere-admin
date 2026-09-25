@@ -3,10 +3,15 @@ import { baseApi } from "../baseApi";
 const categoryApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     allCategory: builder.query({
-      query: () => ({
-        url: `/categories?sub_categories=false`,
+      query: (sub_categories = false) => ({
+        url: `/categories?sub_categories=${Boolean(sub_categories)}`,
         method: "GET",
+        headers: {
+          "Cache-Control": "no-cache",
+          "Pragma": "no-cache",
+        },
       }),
+      providesTags: ["category"],
     }),
 
     singleCategory: builder.query({
@@ -14,6 +19,7 @@ const categoryApi = baseApi.injectEndpoints({
         url: `/categories/${id}`,
         method: "GET",
       }),
+      providesTags: ["category"],
     }),
 
     createCategory: builder.mutation({
@@ -22,6 +28,7 @@ const categoryApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
+      invalidatesTags: ["category"],
     }),
 
     updateCategory: builder.mutation({
@@ -30,6 +37,7 @@ const categoryApi = baseApi.injectEndpoints({
         method: "PUT",
         body: data,
       }),
+      invalidatesTags: ["category"],
     }),
 
     deleteCategory: builder.mutation({
@@ -37,13 +45,15 @@ const categoryApi = baseApi.injectEndpoints({
         url: `/categories/${id}`,
         method: "DELETE",
       }),
+      invalidatesTags: ["category"],
     }),
     reorderCategory: builder.mutation({
       query: (categoryOrders) => ({
         url: "/categories/reorder",
-        method: "PUT",
-        body: { categoryOrders },
+        method: "PATCH",
+        body: { categories: categoryOrders, categoryOrders },
       }),
+      invalidatesTags: ["category"],
     }),
   }),
 });

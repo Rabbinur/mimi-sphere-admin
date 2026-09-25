@@ -80,6 +80,32 @@ export const orderApi = baseApi.injectEndpoints({
       }),
       providesTags: ["order"],
     }),
+    getChannelOrdersManagement: builder.query({
+      query: (params: {
+        channel?: "ONLINE" | "POS" | "ALL";
+        search?: string;
+        status?: string;
+        startDate?: string;
+        endDate?: string;
+        page?: number;
+        limit?: number;
+      }) => {
+        const qp = new URLSearchParams();
+        if (params.channel) qp.append("channel", params.channel);
+        if (params.search) qp.append("search", params.search);
+        if (params.status && params.status !== "all") qp.append("status", params.status);
+        if (params.startDate) qp.append("startDate", params.startDate);
+        if (params.endDate) qp.append("endDate", params.endDate);
+        if (params.page) qp.append("page", String(params.page));
+        if (params.limit) qp.append("limit", String(params.limit));
+
+        return {
+          url: `/orders/channel-orders?${qp.toString()}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["order"],
+    }),
     sendToSteadfast: builder.mutation({
       query: (id: string) => ({
         url: `/orders/send-to-steadfast/${id}`,
@@ -117,6 +143,7 @@ export const {
   useMyOrdersQuery,
   useSingleOrdersQuery,
   useAllOrdersQuery,
+  useGetChannelOrdersManagementQuery,
   useOrderStatusUpdateMutation,
   useSingleOrderAdminQuery,
   useNextOrderIdQuery,

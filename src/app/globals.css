@@ -100,3 +100,64 @@ body {
 .product-table {
   @apply overflow-x-auto;
 }
+
+/* ================= CLEAN PRINT STYLES ================= */
+@media print {
+  /* Hide sidebar, navigation, headers, buttons, inputs, pagination */
+  aside,
+  header,
+  nav,
+  .no-print,
+  button,
+  input,
+  select,
+  [data-no-print] {
+    display: none !important;
+  }
+
+  /* Full-width white canvas for printing */
+  html,
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  main,
+  .flex-1,
+  div[class*="min-h-screen"],
+  div[class*="space-y-"] {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  @page {
+    size: auto;
+    margin: 12mm 10mm;
+  }
+
+  tr, .print-card {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  tfoot {
+    display: table-footer-group !important;
+  }
+}
+

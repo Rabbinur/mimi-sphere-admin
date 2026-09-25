@@ -1,9 +1,11 @@
 import { authKey } from "./authKey";
+import { getApiBaseUrl } from "@/lib/api-config";
 
 export const userLogin = async (formData: any) => {
   const endpoint = formData.access_token ? '/user/google-login' : '/user/login';
+  const baseUrl = getApiBaseUrl();
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}${endpoint}`,
+    `${baseUrl}${endpoint}`,
     {
       method: "POST",
       headers: {

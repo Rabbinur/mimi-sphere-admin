@@ -4,6 +4,7 @@ import { ArrowLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
+import { useRouter } from "next/navigation"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -17,11 +18,14 @@ import InventoryCard from "@/components/Pages/Dashboard/product-create/Inventory
 import OptionsVariantsCard from "@/components/Pages/Dashboard/product-create/OptionsVariantsCard"
 import PhysicalDetailsCard from "@/components/Pages/Dashboard/product-create/PhysicalDetailsCard"
 import PricingCard from "@/components/Pages/Dashboard/product-create/PricingCard"
+import { useAllCategoryQuery } from "@/components/Redux/RTK/categoryApi"
 import { useCreateProductMutation } from "@/components/Redux/RTK/productApi"
 import { type ProductFormValues, productResolver } from "@/lib/validators/productSchema"
 import { toast } from "sonner"
 
 export default function ProductCreatePage() {
+    const router = useRouter()
+    const { data: categories } = useAllCategoryQuery(false)
     const [createProduct, { isLoading }] = useCreateProductMutation()
     const [loading, setLoading] = useState(false)
     const [options, setOptions] = useState<{ name: string; values: string[] }[]>([])
@@ -37,8 +41,15 @@ export default function ProductCreatePage() {
             product_images: [],
             product_price: 0,
             compare_at_price: 0,
+            cost_price: 0,
 
             sku: "",
+            barcode: "",
+            brand: "",
+            seo_title: "",
+            seo_description: "",
+            tags: [],
+            continue_selling: false,
             quantity: 0,
             moq: 1,
 
@@ -52,6 +63,7 @@ export default function ProductCreatePage() {
             product_status: "active",
             is_featured: false,
             is_trendy: false,
+            is_new_arrival: false,
             is_limited_time_offer: false,
             is_pre_order: false,
             pre_order_message: "",
@@ -195,15 +207,54 @@ export default function ProductCreatePage() {
         }
 
         const variantCombinations = generateCombinations(optionsList)
+        const getCategoryCode = (name?: string) => {
+            if (!name) return "PRD";
+            const words = name.replace(/[^a-zA-Z0-9 ]/g, "").trim().split(/\s+/).filter(Boolean);
+            if (words.length === 0) return "PRD";
+            if (words.length === 1) return words[0].substring(0, 4).toUpperCase();
+            if (words.length === 2) {
+                return `${words[0].charAt(0).toUpperCase()}${words[1].substring(0, 3).toUpperCase()}`;
+            }
+            return words.map(w => w.charAt(0).toUpperCase()).join("").substring(0, 4);
+        };
 
-        const newVariants = variantCombinations.map((combination) => ({
-            variant_option_values: combination,
-            variant_price: String(form.getValues("product_price")),
-            compare_at_price: String(form.getValues("compare_at_price")),
-            variant_quantity: 0,
-            image: "",
-            product_weight: 0,
-        }))
+        const getProductCode = (title?: string) => {
+            if (!title) return "ITM";
+            const words = title.replace(/[^a-zA-Z0-9 ]/g, "").trim().split(/\s+/).filter(Boolean);
+            if (words.length === 0) return "ITM";
+            if (words.length === 1) return words[0].substring(0, 4).toUpperCase();
+            if (words.length === 2) {
+                return `${words[0].charAt(0).toUpperCase()}${words[1].substring(0, 3).toUpperCase()}`;
+            }
+            return words.map(w => w.charAt(0).toUpperCase()).join("").substring(0, 4);
+        };
+
+        const title = form.getValues("product_title") || "PRD";
+        const selectedCatIds = form.getValues("product_categories") || [];
+        const matchedCategory = categories?.find((c: any) => selectedCatIds.includes(c._id));
+
+        const catCode = getCategoryCode(matchedCategory?.name);
+        const prodCode = getProductCode(title);
+
+        const newVariants = variantCombinations.map((combination) => {
+            const vals = Object.values(combination || {})
+                .map((val: any) => String(val).replace(/[^a-zA-Z0-9]/g, "").toUpperCase().substring(0, 3))
+                .filter(Boolean)
+                .join("-");
+            const rand = Math.floor(1000 + Math.random() * 9000);
+            const randomBarcode = Math.floor(100000000000 + Math.random() * 900000000000);
+
+            return {
+                variant_option_values: combination,
+                variant_price: String(form.getValues("product_price") || ""),
+                compare_at_price: String(form.getValues("compare_at_price") || ""),
+                variant_quantity: 0,
+                sku: `${catCode}-${prodCode}${vals ? `-${vals}` : ""}-${rand}`,
+                barcode: String(randomBarcode),
+                image: "",
+                product_weight: 0,
+            };
+        })
 
         setVariants(newVariants)
     }
@@ -248,6 +299,11 @@ export default function ProductCreatePage() {
         }
 
         if (variants.length > 0) {
+            const totalVariantStock = variants.reduce(
+                (sum, v) => sum + Number(v.variant_quantity || 0),
+                0
+            );
+            payload.quantity = totalVariantStock;
             payload.product_variants = variants.map((variant) => ({
                 ...variant,
                 variant_price: Number(variant.variant_price),
@@ -255,7 +311,9 @@ export default function ProductCreatePage() {
                     ? Number(variant.compare_at_price)
                     : undefined,
                 variant_quantity: Number(variant.variant_quantity || 0),
-                image: variant.image,
+                sku: variant.sku || undefined,
+                barcode: variant.barcode || undefined,
+                image: variant.image || undefined,
             }))
         }
 
@@ -263,7 +321,16 @@ export default function ProductCreatePage() {
             const response = await createProduct({ data: payload }).unwrap()
 
             if (response.success) {
-                toast.success("Product added successfully")
+                toast.success("Product created successfully! Redirecting...")
+
+                // Reset form
+                form.reset()
+                setOptions([])
+                setVariants([])
+                setOptionValue("")
+
+                // Redirect to all products
+                router.push("/dashboard/products")
             } else {
                 toast.error("Error adding product")
             }
@@ -276,112 +343,111 @@ export default function ProductCreatePage() {
 
 
     return (
-        <div className="min-h-screen bg-background">
-            {/* 🔝 Sticky Header */}
-            <div className="sticky top-0 z-30 border-b bg-white/80 backdrop-blur">
-                <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
-                    <div className="flex items-center gap-4">
-                        <Link
-                            href="/dashboard/products"
-                            className="rounded-md p-1 hover:bg-muted"
-                        >
-                            <ArrowLeft className="h-5 w-5" />
-                        </Link>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span>Products</span>
-                            <ChevronRight className="h-4 w-4" />
-                            <span className="font-medium text-foreground">Add product</span>
-                        </div>
-                    </div>
+        <div className="max-w-full mx-auto pb-12 pt-2 px-3 sm:px-6 space-y-4">
+            {/* Header Area */}
+            <div className="flex items-center justify-between py-1 border-b border-slate-100 mb-2">
+                <div className="flex items-center gap-2">
+                    <Link
+                        href="/dashboard/products"
+                        className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                    </Link>
+                    <h1 className="text-xl font-bold text-slate-800 tracking-tight">
+                        Create Product
+                    </h1>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <Badge
+                        variant={
+                            form.watch("product_status") === "active"
+                                ? "default"
+                                : "secondary"
+                        }
+                    >
+                        {form.watch("product_status") || "draft"}
+                    </Badge>
                 </div>
             </div>
 
-            {/* 🧱 Content */}
-            <div className="container mx-auto mt-8 px-4 lg:px-8">
-                <Form {...form}>
-                    <form className="grid grid-cols-1 gap-8 lg:grid-cols-3" onSubmit={form.handleSubmit(onSubmit)}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                                e.preventDefault()
-                            }
-                        }}>
-                        {/* ⬅️ LEFT */}
-                        <div className="lg:col-span-2 space-y-8">
-                            <BasicInfoCard form={form} />
-                            <PricingCard form={form} />
+            <Form {...form}>
+                <form
+                    className="space-y-4"
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                            e.preventDefault()
+                        }
+                    }}
+                >
+                    {/* Basic Information */}
+                    <BasicInfoCard form={form} />
 
-                            <OptionsVariantsCard
-                                options={options}
+                    {/* Category Selection */}
+                    <CategoryCard form={form} />
 
-                                optionValue={optionValue}
-                                setOptionValue={setOptionValue}
-                                addOption={addOption}
-                                removeOption={removeOption}
-                                updateOptionName={updateOptionName}
-                                addOptionValue={addOptionValue}
-                                removeOptionValue={removeOptionValue}
-                                variants={variants}
-                                setVariants={setVariants}
-                                generateVariants={generateVariants}
-                                form={form}
-                            />
-                        </div>
+                    {/* Pricing */}
+                    <PricingCard form={form} />
 
-                        {/* ➡️ RIGHT SIDEBAR */}
-                        <div className="space-y-6 lg:sticky lg:top-24 h-fit">
-                            {/* Status */}
-                            <div className="rounded-lg border bg-card p-4">
-                                <h3 className="mb-3 text-xs font-semibold uppercase text-muted-foreground">
-                                    Status
-                                </h3>
-                                <Badge
-                                    variant={
-                                        form.watch("product_status") === "active"
-                                            ? "default"
-                                            : "secondary"
-                                    }
-                                >
-                                    {form.watch("product_status")}
-                                </Badge>
-                            </div>
+                    {/* Inventory & Barcode */}
+                    <InventoryCard form={form} hasVariants={variants.length > 0} />
 
-                            {/* Physical Details */}
-                            <div className="rounded-lg border bg-card p-4">
-                                <InventoryCard form={form} />
-                            </div>
+                    {/* Variants Matrix */}
+                    <OptionsVariantsCard
+                        options={options}
+                        optionValue={optionValue}
+                        setOptionValue={setOptionValue}
+                        addOption={addOption}
+                        removeOption={removeOption}
+                        updateOptionName={updateOptionName}
+                        addOptionValue={addOptionValue}
+                        removeOptionValue={removeOptionValue}
+                        variants={variants}
+                        setVariants={setVariants}
+                        generateVariants={generateVariants}
+                        form={form}
+                    />
 
-                            <DiscoverySettingsCard form={form} />
+                    {/* Discovery & SEO Settings */}
+                    <DiscoverySettingsCard form={form} />
 
-                            <CategoryCard form={form} />
+                    {/* Physical Details & Shipping */}
+                    <PhysicalDetailsCard form={form} />
 
-                            <div className="rounded-lg border bg-card p-4">
-                                <PhysicalDetailsCard form={form} />
-                            </div>
-
-                            {/* ✅ CTA */}
-                            <div className="rounded-lg border bg-card p-4 space-y-3">
-                                <Button
-                                    type="submit"
-                                    className="w-full"
-                                // disabled={loading}
-                                >
-                                    {loading ? "Saving..." : "Save Product"}
-                                </Button>
-
-
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    className="w-full"
-                                    asChild
-                                >
-                                    <Link href="/dashboard/products">Discard</Link>
-                                </Button>
-                            </div>
-                        </div>
-                    </form>
-                </Form>
-            </div>
+                    {/* Action Bar Footer */}
+                    <div className="flex sm:flex-row flex-col items-center justify-end gap-3 p-3 bg-white rounded-xl border border-slate-200/80 shadow-2xs">
+                        <Link
+                            href="/dashboard/products"
+                            className="text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors order-last sm:order-first px-3 py-2"
+                        >
+                            Cancel
+                        </Link>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            disabled={loading}
+                            onClick={() => {
+                                form.setValue("product_status", "draft");
+                                form.handleSubmit(onSubmit)();
+                            }}
+                            className="w-full sm:w-auto px-5 py-2 text-xs font-semibold"
+                        >
+                            Save as Draft
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={loading}
+                            onClick={() => {
+                                form.setValue("product_status", "active");
+                            }}
+                            className="w-full sm:w-auto px-6 py-2 bg-blue-600 hover:bg-blue-700 text-xs font-semibold text-white shadow-sm"
+                        >
+                            {loading ? "Saving..." : "Create Product"}
+                        </Button>
+                    </div>
+                </form>
+            </Form>
         </div>
     )
 }

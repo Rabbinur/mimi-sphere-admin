@@ -1,8 +1,9 @@
 import { authKey } from "./authKey";
+import { getApiBaseUrl } from "@/lib/api-config";
 
 export const logoutAction = async () => {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "");
+    const baseUrl = getApiBaseUrl().replace(/\/$/, "");
     
     // Call backend logout directly from browser
     const res = await fetch(`${baseUrl}/user/logout`, {
