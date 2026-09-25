@@ -1,5 +1,5 @@
-# Shopping Cart BD - Frontend
+# Mimi Sphere - Frontend
 
-Ecommerce website for Shopping Cart BD (Bangladesh).
+Ecommerce website for Mimi Sphere (Bangladesh).
 URL: https://www.shoppingcart.bd/
 # shoppingcart-admin

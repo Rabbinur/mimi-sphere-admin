@@ -25,7 +25,8 @@ import {
     User
 } from "lucide-react"; // Added icons for card details
 import Link from "next/link";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import FraudCheckerModal from "./_components/FraudCheckerModal";
 import OrderDetailsModal from "./_components/OrderDetailsModal";
@@ -57,6 +58,18 @@ const statusBadge = (status: string) => {
 };
 
 const OrderManagementPage = () => {
+    const searchParams = useSearchParams();
+    const typeParam = searchParams.get("type"); // "online" | "pos"
+    const [channelTab, setChannelTab] = useState<"all" | "online" | "pos">(
+        typeParam === "pos" ? "pos" : typeParam === "online" ? "online" : "all"
+    );
+
+    useEffect(() => {
+        if (typeParam === "pos") setChannelTab("pos");
+        else if (typeParam === "online") setChannelTab("online");
+        else setChannelTab("all");
+    }, [typeParam]);
+
     const [search, setSearch] = useState("");
     const [status, setStatus] = useState("");
     const [collectionTab, setCollectionTab] = useState<"all" | "success" | "others">("all");

@@ -17,6 +17,7 @@ import BasicInfoCard from "@/components/Pages/Dashboard/product-create/BasicInfo
 import CategoryCard from "@/components/Pages/Dashboard/product-create/CategoryCard"
 import InventoryCard from "@/components/Pages/Dashboard/product-create/InventoryCard"
 import OptionsVariantsCard from "@/components/Pages/Dashboard/product-create/OptionsVariantsCard"
+import { useAllCategoryQuery } from "@/components/Redux/RTK/categoryApi"
 import DiscoverySettingsCard from "@/components/Pages/Dashboard/product-create/DiscoverySettingsCard"
 import PhysicalDetailsCard from "@/components/Pages/Dashboard/product-create/PhysicalDetailsCard"
 import PricingCard from "@/components/Pages/Dashboard/product-create/PricingCard"
@@ -25,6 +26,7 @@ import { type ProductFormValues, productResolver } from "@/lib/validators/produc
 export default function EditProductPage() {
     const { id } = useParams()
     const router = useRouter()
+    const { data: categories } = useAllCategoryQuery(false)
     const { data: productData, isLoading } = useSingleProductByIdQuery(id)
     const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation()
 
@@ -41,10 +43,17 @@ export default function EditProductPage() {
             product_images: [],
             product_price: 0,
             compare_at_price: 0,
+            cost_price: 0,
 
             sku: "",
+            barcode: "",
+            brand: "",
+            seo_title: "",
+            seo_description: "",
+            tags: [],
+            continue_selling: false,
             quantity: 0,
-            moq: 0,
+            moq: 1,
             country_of_origin: "",
             product_categories: [],
             product_vendor: "",
@@ -58,6 +67,8 @@ export default function EditProductPage() {
             is_limited_time_offer: false,
             is_pre_order: false,
             pre_order_message: "",
+            product_options: [],
+            product_variants: [],
         },
     })
 
@@ -72,10 +83,18 @@ export default function EditProductPage() {
                 product_images: product.product_images || [],
                 product_price: Number(product.product_price) || 0,
                 compare_at_price: Number(product.compare_at_price) || 0,
+                cost_price: Number(product.cost_price) || 0,
 
                 sku: product.sku || "",
+                barcode: product.barcode || "",
+                brand: product.brand || "",
+                seo_title: product.seo_title || "",
+                seo_description: product.seo_description || "",
+                tags: product.tags || [],
+                continue_selling: !!product.continue_selling,
+                charge_tax: !!product.charge_tax,
                 quantity: Number(product.quantity) || 0,
-                moq: Number(product.moq) || 0,
+                moq: Number(product.moq) || 1,
                 country_of_origin: product.country_of_origin || "",
                 product_categories: (product.product_categories || []).map((c: any) => typeof c === 'string' ? c : c._id),
 
@@ -87,6 +106,7 @@ export default function EditProductPage() {
                 product_status: product.product_status || "active",
                 is_featured: !!product.is_featured,
                 is_trendy: !!product.is_trendy,
+                is_new_arrival: !!product.is_new_arrival,
                 is_limited_time_offer: !!product.is_limited_time_offer,
                 is_pre_order: !!product.is_pre_order,
                 pre_order_message: product.pre_order_message || "",
@@ -227,29 +247,77 @@ export default function EditProductPage() {
             return result
         }
 
-        const combinations = generateCombinations(optionsList)
-        const newVariants = combinations.map((combination) => ({
-            variant_option_values: combination,
-            variant_price: String(form.getValues("product_price") || 0),
-            compare_at_price: String(form.getValues("compare_at_price") || 0),
-            variant_quantity: 0,
-            image: "",
-            product_weight: 0,
-        }))
+        const getCategoryCode = (name?: string) => {
+            if (!name) return "PRD";
+            const words = name.replace(/[^a-zA-Z0-9 ]/g, "").trim().split(/\s+/).filter(Boolean);
+            if (words.length === 0) return "PRD";
+            if (words.length === 1) return words[0].substring(0, 4).toUpperCase();
+            if (words.length === 2) {
+                return `${words[0].charAt(0).toUpperCase()}${words[1].substring(0, 3).toUpperCase()}`;
+            }
+            return words.map(w => w.charAt(0).toUpperCase()).join("").substring(0, 4);
+        };
+
+        const getProductCode = (title?: string) => {
+            if (!title) return "ITM";
+            const words = title.replace(/[^a-zA-Z0-9 ]/g, "").trim().split(/\s+/).filter(Boolean);
+            if (words.length === 0) return "ITM";
+            if (words.length === 1) return words[0].substring(0, 4).toUpperCase();
+            if (words.length === 2) {
+                return `${words[0].charAt(0).toUpperCase()}${words[1].substring(0, 3).toUpperCase()}`;
+            }
+            return words.map(w => w.charAt(0).toUpperCase()).join("").substring(0, 4);
+        };
+
+        const title = form.getValues("product_title") || "PRD";
+        const selectedCatIds = form.getValues("product_categories") || [];
+        const matchedCategory = categories?.find((c: any) => selectedCatIds.includes(c._id));
+
+        const catCode = getCategoryCode(matchedCategory?.name);
+        const prodCode = getProductCode(title);
+
+        const combinations = generateCombinations(optionsList);
+
+        const newVariants = combinations.map((combination) => {
+            const vals = Object.values(combination || {})
+                .map((val: any) => String(val).replace(/[^a-zA-Z0-9]/g, "").toUpperCase().substring(0, 3))
+                .filter(Boolean)
+                .join("-");
+            const rand = Math.floor(1000 + Math.random() * 9000);
+            const randomBarcode = Math.floor(100000000000 + Math.random() * 900000000000);
+
+            return {
+                variant_option_values: combination,
+                variant_price: String(form.getValues("product_price") || 0),
+                compare_at_price: String(form.getValues("compare_at_price") || 0),
+                variant_quantity: 0,
+                sku: `${catCode}-${prodCode}${vals ? `-${vals}` : ""}-${rand}`,
+                barcode: String(randomBarcode),
+                image: "",
+                product_weight: 0,
+            };
+        })
 
         setVariants(newVariants)
     }
 
     async function onSubmit(data: ProductFormValues) {
+        const totalVariantStock = variants.length > 0
+            ? variants.reduce((sum, v) => sum + Number(v.variant_quantity || 0), 0)
+            : Number(data.quantity || 0);
+
         const payload = {
             ...data,
+            quantity: totalVariantStock,
             product_options: options.map(o => ({ option_name: o.name, option_values: o.values })),
             product_variants: variants.map(v => ({
                 ...v,
                 variant_price: Number(v.variant_price),
                 compare_at_price: v.compare_at_price ? Number(v.compare_at_price) : undefined,
                 variant_quantity: Number(v.variant_quantity || 0),
-                image: v.image,
+                sku: v.sku || undefined,
+                barcode: v.barcode || undefined,
+                image: v.image || undefined,
             }))
         }
 
@@ -265,81 +333,114 @@ export default function EditProductPage() {
     if (isLoading) return <div className="p-10 text-center">Loading product data...</div>
 
     return (
-        <div className="min-h-screen bg-background">
-            <div className="sticky top-0 z-30 border-b bg-white/80 backdrop-blur">
-                <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
-                    <div className="flex items-center gap-4">
-                        <Link href="/dashboard/products" className="rounded-md p-1 hover:bg-muted">
-                            <ArrowLeft className="h-5 w-5" />
-                        </Link>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span>Products</span>
-                            <ChevronRight className="h-4 w-4" />
-                            <span className="font-medium text-foreground">Edit Product</span>
-                        </div>
-                    </div>
+        <div className="max-w-full mx-auto pb-12 pt-2 px-3 sm:px-6 space-y-4">
+            {/* Header Area */}
+            <div className="flex items-center justify-between py-1 border-b border-slate-100 mb-2">
+                <div className="flex items-center gap-2">
+                    <Link
+                        href="/dashboard/products"
+                        className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                    </Link>
+                    <h1 className="text-xl font-bold text-slate-800 tracking-tight">
+                        Edit Product: <span className="text-primary font-black">{form.watch("product_title")}</span>
+                    </h1>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <Badge
+                        variant={
+                            form.watch("product_status") === "active"
+                                ? "default"
+                                : "secondary"
+                        }
+                    >
+                        {form.watch("product_status") || "draft"}
+                    </Badge>
                 </div>
             </div>
 
-            <div className="container mx-auto mt-8 px-4 lg:px-8">
-                <Form {...form}>
-                    <form
-                        className="grid grid-cols-1 gap-8 lg:grid-cols-3"
-                        onSubmit={form.handleSubmit(onSubmit, (errors) => {
-                            console.error("Form Validation Errors:", errors);
-                            toast.error("Please fix the errors in the form before submitting.");
-                        })}
-                    >
-                        <div className="lg:col-span-2 space-y-8">
-                            <BasicInfoCard form={form} />
-                            <PricingCard form={form} />
-                            <OptionsVariantsCard
-                                options={options}
-                                optionValue={optionValue}
-                                setOptionValue={setOptionValue}
-                                addOption={addOption}
-                                removeOption={removeOption}
-                                updateOptionName={updateOptionName}
-                                addOptionValue={addOptionValue}
-                                removeOptionValue={removeOptionValue}
-                                variants={variants}
-                                setVariants={setVariants}
-                                generateVariants={generateVariants}
-                                form={form}
-                            />
-                        </div>
+            <Form {...form}>
+                <form
+                    className="space-y-4"
+                    onSubmit={form.handleSubmit(onSubmit, (errors) => {
+                        console.error("Form Validation Errors:", errors);
+                        toast.error("Please fix the errors in the form before submitting.");
+                    })}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                            e.preventDefault()
+                        }
+                    }}
+                >
+                    {/* Basic Information */}
+                    <BasicInfoCard form={form} />
 
-                        <div className="space-y-6 lg:sticky lg:top-24 h-fit">
-                            <div className="rounded-lg border bg-card p-4">
-                                <h3 className="mb-3 text-xs font-semibold uppercase text-muted-foreground">Status</h3>
-                                <Badge variant={form.watch("product_status") === "active" ? "default" : "secondary"}>
-                                    {form.watch("product_status")}
-                                </Badge>
-                            </div>
+                    {/* Category Selection */}
+                    <CategoryCard form={form} />
 
-                            <div className="    rounded-lg border bg-card p-4">
-                                <InventoryCard form={form} />
-                            </div>
+                    {/* Pricing */}
+                    <PricingCard form={form} />
 
-                            <DiscoverySettingsCard form={form} />
+                    {/* Inventory & Barcode */}
+                    <InventoryCard form={form} hasVariants={variants.length > 0} />
 
-                            <CategoryCard form={form} />
+                    {/* Variants Matrix */}
+                    <OptionsVariantsCard
+                        options={options}
+                        optionValue={optionValue}
+                        setOptionValue={setOptionValue}
+                        addOption={addOption}
+                        removeOption={removeOption}
+                        updateOptionName={updateOptionName}
+                        addOptionValue={addOptionValue}
+                        removeOptionValue={removeOptionValue}
+                        variants={variants}
+                        setVariants={setVariants}
+                        generateVariants={generateVariants}
+                        form={form}
+                    />
 
-                            <div className="rounded-lg border bg-card p-4">
-                                <PhysicalDetailsCard form={form} />
-                            </div>
-                            <div className="rounded-lg border bg-card p-4 space-y-3">
-                                <Button type="submit" className="w-full" disabled={isUpdating}>
-                                    {isUpdating ? "Updating..." : "Update Product"}
-                                </Button>
-                                <Button type="button" variant="outline" className="w-full" asChild>
-                                    <Link href="/dashboard/products">Cancel</Link>
-                                </Button>
-                            </div>
-                        </div>
-                    </form>
-                </Form>
-            </div>
+                    {/* Discovery & SEO Settings */}
+                    <DiscoverySettingsCard form={form} />
+
+                    {/* Physical Details & Shipping */}
+                    <PhysicalDetailsCard form={form} />
+
+                    {/* Action Bar Footer */}
+                    <div className="flex sm:flex-row flex-col items-center justify-end gap-3 p-3 bg-white rounded-xl border border-slate-200/80 shadow-2xs">
+                        <Link
+                            href="/dashboard/products"
+                            className="text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors order-last sm:order-first px-3 py-2"
+                        >
+                            Cancel
+                        </Link>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            disabled={isUpdating}
+                            onClick={() => {
+                                form.setValue("product_status", "draft");
+                                form.handleSubmit(onSubmit)();
+                            }}
+                            className="w-full sm:w-auto px-5 py-2 text-xs font-semibold"
+                        >
+                            Save as Draft
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={isUpdating}
+                            onClick={() => {
+                                form.setValue("product_status", "active");
+                            }}
+                            className="w-full sm:w-auto px-6 py-2 bg-blue-600 hover:bg-blue-700 text-xs font-semibold text-white shadow-sm"
+                        >
+                            {isUpdating ? "Updating..." : "Update Product"}
+                        </Button>
+                    </div>
+                </form>
+            </Form>
         </div>
     )
 }

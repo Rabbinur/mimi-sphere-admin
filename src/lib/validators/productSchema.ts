@@ -17,9 +17,20 @@ export const productSchema = z.object({
 
   compare_at_price: z.number().optional(),
 
+  cost_price: z.number().optional(),
+
   discount_percentage: z.number().min(0).max(100).optional(),
 
   sku: z.string().optional(),
+  barcode: z.string().optional(),
+  brand: z.string().optional(),
+  seo_title: z.string().optional(),
+  seo_description: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  shipping_policy: z.string().optional(),
+  return_policy: z.string().optional(),
+  continue_selling: z.boolean().optional(),
+  charge_tax: z.boolean().optional(),
 
   moq: z.number().min(1, "MOQ must be at least 1").optional(),
 
@@ -41,6 +52,7 @@ export const productSchema = z.object({
   product_status: z.enum(["draft", "active"]).optional(),
   is_featured: z.boolean().optional(),
   is_trendy: z.boolean().optional(),
+  is_new_arrival: z.boolean().optional(),
   is_limited_time_offer: z.boolean().optional(),
   is_free_delivery: z.boolean().optional(),
   is_pre_order: z.boolean().optional(),
@@ -71,6 +83,9 @@ export const productSchema = z.object({
         variant_price: z.number().positive(),
         variant_quantity: z.number().int().min(0).optional(),
         compare_at_price: z.number().optional(),
+        cost_price: z.number().optional(),
+        sku: z.string().optional(),
+        barcode: z.string().optional(),
         image: z.string().optional(),
       }),
     )

@@ -61,6 +61,7 @@ export interface TProduct {
   product_status?: "draft" | "active";
   is_featured?: boolean;
   is_trendy?: boolean;
+  is_new_arrival?: boolean;
   is_limited_time_offer?: boolean;
   is_free_delivery?: boolean;
   product_attributes?: {
@@ -102,7 +103,11 @@ export interface TCategory {
   description: string;
   parent_category_id: null | string;
   imageUrl: string;
+  bannerImage?: string;
   isActive: boolean;
+  showInNavbar?: boolean;
+  order?: number;
+  sub_categories?: TCategory[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -205,12 +210,49 @@ export interface THeroFeature {
   link: string;
 }
 
+export interface TBentoItem {
+  badge?: string;
+  badgeColor?: string;
+  title: string;
+  subtitle?: string;
+  image: string;
+  link: string;
+  categorySlug?: string;
+  colSpan?: number;
+  rowSpan?: number;
+}
+
+export interface TBentoGrid {
+  isEnabled: boolean;
+  tag?: string;
+  title?: string;
+  items: TBentoItem[];
+}
+
+export interface TExitIntentPopup {
+  isEnabled: boolean;
+  title: string;
+  subtitle: string;
+  voucherCode: string;
+  discountText: string;
+  expiryMinutes: number;
+  ctaText: string;
+  declineText: string;
+}
+
 export interface TCMS {
   company: TCompany;
   social: TSocial;
   heroSliderDesktop: THeroSlide[];
   heroSliderMobile: THeroSlide[];
   heroFeatures: THeroFeature[];
+  bentoGrid?: TBentoGrid;
+  featuredCollections?: {
+    isEnabled: boolean;
+    title?: string;
+    subtitle?: string;
+  };
+  exitIntentPopup?: TExitIntentPopup;
 }
 
 export interface TDashboardOverview {

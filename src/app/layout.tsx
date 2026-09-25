@@ -1,7 +1,6 @@
 import Provider from "@/components/Provider/MainProvider";
 import type { Metadata } from "next";
 import { Bai_Jamjuree } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 
 const baiJamjuree = Bai_Jamjuree({
@@ -15,26 +14,26 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://www.shoppingcart.bd"),
 
   title: {
-    default: "Admin Panel | Shopping Cart BD",
+    default: "Admin Panel | Mimi Sphere",
     template: "%s | Admin Panel",
   },
-  description: "Management console for Shopping Cart BD",
+  description: "Management console for Mimi Sphere",
 
   alternates: {
     canonical: "/",
   },
 
   openGraph: {
-    title: "Shopping Cart BD | Premium Online Shopping in Bangladesh",
-    description: "Shop the best products at Shopping Cart BD...",
+    title: "Mimi Sphere | Premium Online Shopping in Bangladesh",
+    description: "Shop the best products at Mimi Sphere...",
     url: "https://www.shoppingcart.bd",
-    siteName: "Shopping Cart BD",
+    siteName: "Mimi Sphere",
     images: [
       {
         url: "/og.png",
         width: 1200,
         height: 630,
-        alt: "Shopping Cart BD",
+        alt: "Mimi Sphere",
       },
     ],
     locale: "en_US",
@@ -43,7 +42,7 @@ export const metadata: Metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title: "Shopping Cart BD",
+    title: "Mimi Sphere",
     description: "Your favorite online shopping destination in Bangladesh.",
     images: ["/og.png"],
   },

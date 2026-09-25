@@ -2,17 +2,22 @@
 
 import { useAllCategoryQuery } from "@/components/Redux/RTK/categoryApi";
 import { useAdminProductsQuery, useDeleteProductMutation, useImportCjProductsMutation, useUpdateProductMutation } from "@/components/Redux/RTK/productApi";
-import { ChevronLeft, ChevronRight, Clock, Edit3, Filter, Flame, Loader2, Search, Star, Trash2, X, Zap } from "lucide-react";
+import { Barcode, ChevronLeft, ChevronRight, Clock, Edit3, Filter, Flame, Loader2, Search, Sparkles, Star, Trash2, X, Zap } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { BarcodeModal } from "./inventory/_components/BarcodeModal";
 
 interface TProduct {
     _id: string;
     product_title: string;
     product_description: string;
     thumbnail?: string;
+    sku?: string;
+    barcode?: string;
     product_price: number;
+    compare_at_price?: number;
+    cost_price?: number;
     product_categories?: Array<{ _id: string; name: string }> | string[];
     quantity: number;
     in_stock: boolean;
@@ -24,6 +29,7 @@ interface TProduct {
     product_status?: 'draft' | 'active';
     is_featured?: boolean;
     is_trendy?: boolean;
+    is_new_arrival?: boolean;
     is_limited_time_offer?: boolean;
     is_pre_order?: boolean;
     pre_order_message?: string;
@@ -67,6 +73,7 @@ const AdminProductsPage = () => {
     const [importKeyword, setImportKeyword] = useState("hoodie");
     const [importCategoryId, setImportCategoryId] = useState("");
     const [importType, setImportType] = useState<"multi" | "single">("multi");
+    const [barcodeModalVariant, setBarcodeModalVariant] = useState<any>(null);
 
     const queryArgs = {
         searchTerm: searchTerm,
@@ -119,6 +126,15 @@ const AdminProductsPage = () => {
             toast.success(product.is_trendy ? "Removed from Trendy" : "Marked as Trendy");
         } catch (err) {
             toast.error("Failed to update Trendy status");
+        }
+    };
+
+    const handleToggleNewArrival = async (product: TProduct) => {
+        try {
+            await updateProduct({ id: product._id, data: { is_new_arrival: !product.is_new_arrival } }).unwrap();
+            toast.success(product.is_new_arrival ? "Removed from New Arrival" : "Marked as New Arrival");
+        } catch (err) {
+            toast.error("Failed to update New Arrival status");
         }
     };
 
@@ -254,22 +270,7 @@ const AdminProductsPage = () => {
                         Add Product
                     </Link>
 
-                    <button
-                        onClick={() => setIsImportModalOpen(true)}
-                        disabled={isImporting}
-                        className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg shadow-sm hover:opacity-95 disabled:opacity-70 disabled:cursor-not-allowed whitespace-nowrap"
-                    >
-                        {isImporting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                        Cjdropshipping
-                    </button>
 
-                    <Link href="/dashboard/products/import/alg" className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg shadow-sm hover:opacity-95 whitespace-nowrap">
-                        ALG Limited
-                    </Link>
-
-                    <Link href="/dashboard/products/import/kcbazar" className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg shadow-sm hover:opacity-95 whitespace-nowrap">
-                        kcbazar importer
-                    </Link>
                 </div>
             </header>
 
@@ -326,7 +327,8 @@ const AdminProductsPage = () => {
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price / Compare</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost per Item</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inventory</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Discovery</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -336,7 +338,7 @@ const AdminProductsPage = () => {
                     <tbody className="bg-white divide-y divide-gray-200">
                         {isFetching && (
                             <tr>
-                                <td colSpan={7} className="text-center py-2 text-primary bg-primary/5 text-xs font-medium">
+                                <td colSpan={8} className="text-center py-2 text-primary bg-primary/5 text-xs font-medium">
                                     <Loader2 className="h-4 w-4 inline animate-spin mr-2" />
                                     Updating data...
                                 </td>
@@ -344,7 +346,7 @@ const AdminProductsPage = () => {
                         )}
                         {!isLoading && products.length === 0 && (
                             <tr>
-                                <td colSpan={7} className="text-center py-10 text-gray-500">
+                                <td colSpan={8} className="text-center py-10 text-gray-500">
                                     No products found matching your criteria.
                                 </td>
                             </tr>
@@ -375,8 +377,37 @@ const AdminProductsPage = () => {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {(product.product_categories || []).map((c: any) => typeof c === 'string' ? c : c.name).join(', ') || "N/A"}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    ৳{product.product_price.toFixed(2)}
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                    <div className="font-bold text-gray-900">
+                                        ৳{Number(product.product_price || 0).toFixed(2)}
+                                    </div>
+                                    {product.compare_at_price && Number(product.compare_at_price) > Number(product.product_price) ? (
+                                        <div className="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
+                                            <span className="line-through">৳{Number(product.compare_at_price).toFixed(2)}</span>
+                                            <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-1 py-0.2 rounded">
+                                                -{Math.round(((Number(product.compare_at_price) - Number(product.product_price)) / Number(product.compare_at_price)) * 100)}%
+                                            </span>
+                                        </div>
+                                    ) : null}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                    <div className="font-semibold text-gray-800">
+                                        ৳{product.cost_price !== undefined && product.cost_price !== null ? Number(product.cost_price).toFixed(2) : "0.00"}
+                                    </div>
+                                    {(() => {
+                                        const price = Number(product.product_price) || 0;
+                                        const cost = Number(product.cost_price) || 0;
+                                        if (cost > 0 && price > 0) {
+                                            const profit = price - cost;
+                                            const margin = ((profit / price) * 100).toFixed(0);
+                                            return (
+                                                <div className={`text-[11px] font-semibold mt-0.5 ${profit >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                                                    {margin}% margin ({profit >= 0 ? "+" : ""}৳{profit.toFixed(0)})
+                                                </div>
+                                            );
+                                        }
+                                        return <span className="text-[11px] text-gray-400">No cost</span>;
+                                    })()}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full`}>
@@ -398,6 +429,13 @@ const AdminProductsPage = () => {
                                             className={`p-1.5 rounded-full transition-colors ${product.is_trendy ? 'bg-orange-100 text-orange-600' : 'bg-gray-100 text-gray-400 hover:text-orange-600'}`}
                                         >
                                             <Flame className={`h-4 w-4 ${product.is_trendy ? 'fill-current' : ''}`} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleToggleNewArrival(product)}
+                                            title={product.is_new_arrival ? "New Arrival" : "Mark as New Arrival"}
+                                            className={`p-1.5 rounded-full transition-colors ${product.is_new_arrival ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-400 hover:text-amber-600'}`}
+                                        >
+                                            <Sparkles className={`h-4 w-4 ${product.is_new_arrival ? 'fill-current' : ''}`} />
                                         </button>
                                         <button
                                             onClick={() => handleToggleLimitedOffer(product)}
@@ -426,23 +464,39 @@ const AdminProductsPage = () => {
                                         {product.product_status || 'active'}
                                     </button>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex items-center justify-end gap-3">
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex items-center justify-end gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setBarcodeModalVariant({
+                                            id: product._id,
+                                            sku: product.sku,
+                                            barcode: product.barcode || product.sku,
+                                            product: { name: product.product_title },
+                                            available_quantity: product.quantity,
+                                            price: product.product_price,
+                                        })}
+                                        title="Print Barcode Label"
+                                        className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border border-blue-200 text-blue-700 bg-blue-50/60 hover:bg-blue-100 transition-colors cursor-pointer"
+                                    >
+                                        <Barcode className="h-3.5 w-3.5 mr-1 text-blue-600" /> Barcode
+                                    </button>
+
                                     <Link
                                         href={`/dashboard/products/edit/${product._id}`}
-                                        className="inline-flex items-center px-3 py-1 rounded-md text-sm border border-gray-200 hover:bg-gray-50"
+                                        className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold border border-gray-200 hover:bg-gray-50 text-gray-700"
                                     >
-                                        <Edit3 className="h-4 w-4 mr-2" /> Edit
+                                        <Edit3 className="h-3.5 w-3.5 mr-1" /> Edit
                                     </Link>
 
                                     <button
                                         onClick={() => handleDelete(product._id)}
                                         disabled={isDeleting}
-                                        className="inline-flex items-center px-3 py-1 rounded-md text-sm border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-60"
+                                        className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-60 cursor-pointer"
                                     >
                                         {isDeleting ? (
-                                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                            <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
                                         ) : (
-                                            <Trash2 className="h-4 w-4 mr-2" />
+                                            <Trash2 className="h-3.5 w-3.5 mr-1" />
                                         )}
                                         Delete
                                     </button>
@@ -626,6 +680,13 @@ const AdminProductsPage = () => {
                     </div>
                 </div>
             )}
+
+            {/* Barcode Sticker Label Modal */}
+            <BarcodeModal
+                isOpen={!!barcodeModalVariant}
+                onClose={() => setBarcodeModalVariant(null)}
+                variant={barcodeModalVariant}
+            />
         </div>
     );
 };

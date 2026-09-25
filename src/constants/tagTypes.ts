@@ -17,6 +17,8 @@ export const tagTypes = [
   "CampaignTemplate",
   "ServerLogs",
   "Review",
+  "CustomerReview",
   "collections",
+  "category",
 ] as const;
 

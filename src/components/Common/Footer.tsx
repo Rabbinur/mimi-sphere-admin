@@ -79,7 +79,7 @@ const Footer = () => {
             </Link>
             <div className="space-y-4">
               <p className="text-sm leading-relaxed max-w-sm text-slate-500 font-medium">
-                {cmsData?.company?.name || "Shopping Cart BD"} - Your one-stop destination for premium curated items and exclusive web deals.
+                {cmsData?.company?.name || "Mimi Sphere"} - Your one-stop destination for premium curated items and exclusive web deals.
               </p>
               <div className="space-y-3">
                 {/* <div className="flex items-start gap-3 group">
