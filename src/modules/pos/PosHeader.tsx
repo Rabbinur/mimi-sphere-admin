@@ -144,7 +144,7 @@ export function PosHeader({
 
         {/* Online Orders Button (Accessible to both Cashier & Admin) */}
         <Link
-          href="/dashboard/orders"
+          href="/dashboard/orders/online"
           className="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs sm:text-sm px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-lg flex items-center gap-1.5 shadow-xs transition-all cursor-pointer shrink-0"
           title="Manage Online Orders"
         >
