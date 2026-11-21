@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node init && next dev --turbopack",
-    "build": "node init && next build",
+    "dev": "next dev --turbopack",
+    "build": "next build",
     "postbuild": "next-sitemap",
-    "start": "node init && next start",
+    "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
